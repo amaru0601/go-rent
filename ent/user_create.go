@@ -6,9 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 )
 
@@ -35,6 +37,39 @@ func (uc *UserCreate) SetNames(s string) *UserCreate {
 func (uc *UserCreate) SetLastnames(s string) *UserCreate {
 	uc.mutation.SetLastnames(s)
 	return uc
+}
+
+// SetBirthday sets the "birthday" field.
+func (uc *UserCreate) SetBirthday(t time.Time) *UserCreate {
+	uc.mutation.SetBirthday(t)
+	return uc
+}
+
+// SetEmail sets the "email" field.
+func (uc *UserCreate) SetEmail(s string) *UserCreate {
+	uc.mutation.SetEmail(s)
+	return uc
+}
+
+// SetActivate sets the "activate" field.
+func (uc *UserCreate) SetActivate(b bool) *UserCreate {
+	uc.mutation.SetActivate(b)
+	return uc
+}
+
+// AddPropertyIDs adds the "properties" edge to the Property entity by IDs.
+func (uc *UserCreate) AddPropertyIDs(ids ...int) *UserCreate {
+	uc.mutation.AddPropertyIDs(ids...)
+	return uc
+}
+
+// AddProperties adds the "properties" edges to the Property entity.
+func (uc *UserCreate) AddProperties(p ...*Property) *UserCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uc.AddPropertyIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -131,6 +166,20 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "lastnames", err: fmt.Errorf(`ent: validator failed for field "lastnames": %w`, err)}
 		}
 	}
+	if _, ok := uc.mutation.Birthday(); !ok {
+		return &ValidationError{Name: "birthday", err: errors.New(`ent: missing required field "birthday"`)}
+	}
+	if _, ok := uc.mutation.Email(); !ok {
+		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "email"`)}
+	}
+	if v, ok := uc.mutation.Email(); ok {
+		if err := user.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "email": %w`, err)}
+		}
+	}
+	if _, ok := uc.mutation.Activate(); !ok {
+		return &ValidationError{Name: "activate", err: errors.New(`ent: missing required field "activate"`)}
+	}
 	return nil
 }
 
@@ -181,6 +230,49 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldLastnames,
 		})
 		_node.Lastnames = value
+	}
+	if value, ok := uc.mutation.Birthday(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: user.FieldBirthday,
+		})
+		_node.Birthday = value
+	}
+	if value, ok := uc.mutation.Email(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldEmail,
+		})
+		_node.Email = value
+	}
+	if value, ok := uc.mutation.Activate(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: user.FieldActivate,
+		})
+		_node.Activate = value
+	}
+	if nodes := uc.mutation.PropertiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PropertiesTable,
+			Columns: []string{user.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

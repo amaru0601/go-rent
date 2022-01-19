@@ -6,8 +6,10 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/amaru0601/go-rent/ent/predicate"
+	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 
 	"entgo.io/ent"
@@ -22,23 +24,499 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeUser = "User"
+	TypeProperty = "Property"
+	TypeUser     = "User"
 )
 
-// UserMutation represents an operation that mutates the User nodes in the graph.
-type UserMutation struct {
+// PropertyMutation represents an operation that mutates the Property nodes in the graph.
+type PropertyMutation struct {
 	config
 	op            Op
 	typ           string
 	id            *int
-	age           *int
-	addage        *int
-	names         *string
-	lastnames     *string
+	_type         *property.Type
+	name          *string
+	deleted       *bool
 	clearedFields map[string]struct{}
+	owner         *int
+	clearedowner  bool
 	done          bool
-	oldValue      func(context.Context) (*User, error)
-	predicates    []predicate.User
+	oldValue      func(context.Context) (*Property, error)
+	predicates    []predicate.Property
+}
+
+var _ ent.Mutation = (*PropertyMutation)(nil)
+
+// propertyOption allows management of the mutation configuration using functional options.
+type propertyOption func(*PropertyMutation)
+
+// newPropertyMutation creates new mutation for the Property entity.
+func newPropertyMutation(c config, op Op, opts ...propertyOption) *PropertyMutation {
+	m := &PropertyMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeProperty,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPropertyID sets the ID field of the mutation.
+func withPropertyID(id int) propertyOption {
+	return func(m *PropertyMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Property
+		)
+		m.oldValue = func(ctx context.Context) (*Property, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Property.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withProperty sets the old Property of the mutation.
+func withProperty(node *Property) propertyOption {
+	return func(m *PropertyMutation) {
+		m.oldValue = func(context.Context) (*Property, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PropertyMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PropertyMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PropertyMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetType sets the "type" field.
+func (m *PropertyMutation) SetType(pr property.Type) {
+	m._type = &pr
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *PropertyMutation) GetType() (r property.Type, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Property entity.
+// If the Property object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PropertyMutation) OldType(ctx context.Context) (v property.Type, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *PropertyMutation) ResetType() {
+	m._type = nil
+}
+
+// SetName sets the "name" field.
+func (m *PropertyMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *PropertyMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Property entity.
+// If the Property object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PropertyMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *PropertyMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDeleted sets the "deleted" field.
+func (m *PropertyMutation) SetDeleted(b bool) {
+	m.deleted = &b
+}
+
+// Deleted returns the value of the "deleted" field in the mutation.
+func (m *PropertyMutation) Deleted() (r bool, exists bool) {
+	v := m.deleted
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeleted returns the old "deleted" field's value of the Property entity.
+// If the Property object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PropertyMutation) OldDeleted(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDeleted is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDeleted requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeleted: %w", err)
+	}
+	return oldValue.Deleted, nil
+}
+
+// ResetDeleted resets all changes to the "deleted" field.
+func (m *PropertyMutation) ResetDeleted() {
+	m.deleted = nil
+}
+
+// SetOwnerID sets the "owner" edge to the User entity by id.
+func (m *PropertyMutation) SetOwnerID(id int) {
+	m.owner = &id
+}
+
+// ClearOwner clears the "owner" edge to the User entity.
+func (m *PropertyMutation) ClearOwner() {
+	m.clearedowner = true
+}
+
+// OwnerCleared reports if the "owner" edge to the User entity was cleared.
+func (m *PropertyMutation) OwnerCleared() bool {
+	return m.clearedowner
+}
+
+// OwnerID returns the "owner" edge ID in the mutation.
+func (m *PropertyMutation) OwnerID() (id int, exists bool) {
+	if m.owner != nil {
+		return *m.owner, true
+	}
+	return
+}
+
+// OwnerIDs returns the "owner" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OwnerID instead. It exists only for internal usage by the builders.
+func (m *PropertyMutation) OwnerIDs() (ids []int) {
+	if id := m.owner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOwner resets all changes to the "owner" edge.
+func (m *PropertyMutation) ResetOwner() {
+	m.owner = nil
+	m.clearedowner = false
+}
+
+// Where appends a list predicates to the PropertyMutation builder.
+func (m *PropertyMutation) Where(ps ...predicate.Property) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *PropertyMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Property).
+func (m *PropertyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PropertyMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m._type != nil {
+		fields = append(fields, property.FieldType)
+	}
+	if m.name != nil {
+		fields = append(fields, property.FieldName)
+	}
+	if m.deleted != nil {
+		fields = append(fields, property.FieldDeleted)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PropertyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case property.FieldType:
+		return m.GetType()
+	case property.FieldName:
+		return m.Name()
+	case property.FieldDeleted:
+		return m.Deleted()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PropertyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case property.FieldType:
+		return m.OldType(ctx)
+	case property.FieldName:
+		return m.OldName(ctx)
+	case property.FieldDeleted:
+		return m.OldDeleted(ctx)
+	}
+	return nil, fmt.Errorf("unknown Property field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PropertyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case property.FieldType:
+		v, ok := value.(property.Type)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case property.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case property.FieldDeleted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeleted(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Property field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PropertyMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PropertyMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PropertyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Property numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PropertyMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PropertyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PropertyMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Property nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PropertyMutation) ResetField(name string) error {
+	switch name {
+	case property.FieldType:
+		m.ResetType()
+		return nil
+	case property.FieldName:
+		m.ResetName()
+		return nil
+	case property.FieldDeleted:
+		m.ResetDeleted()
+		return nil
+	}
+	return fmt.Errorf("unknown Property field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PropertyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.owner != nil {
+		edges = append(edges, property.EdgeOwner)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PropertyMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case property.EdgeOwner:
+		if id := m.owner; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PropertyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PropertyMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PropertyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedowner {
+		edges = append(edges, property.EdgeOwner)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PropertyMutation) EdgeCleared(name string) bool {
+	switch name {
+	case property.EdgeOwner:
+		return m.clearedowner
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PropertyMutation) ClearEdge(name string) error {
+	switch name {
+	case property.EdgeOwner:
+		m.ClearOwner()
+		return nil
+	}
+	return fmt.Errorf("unknown Property unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PropertyMutation) ResetEdge(name string) error {
+	switch name {
+	case property.EdgeOwner:
+		m.ResetOwner()
+		return nil
+	}
+	return fmt.Errorf("unknown Property edge %s", name)
+}
+
+// UserMutation represents an operation that mutates the User nodes in the graph.
+type UserMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	age               *int
+	addage            *int
+	names             *string
+	lastnames         *string
+	birthday          *time.Time
+	email             *string
+	activate          *bool
+	clearedFields     map[string]struct{}
+	properties        map[int]struct{}
+	removedproperties map[int]struct{}
+	clearedproperties bool
+	done              bool
+	oldValue          func(context.Context) (*User, error)
+	predicates        []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -248,6 +726,168 @@ func (m *UserMutation) ResetLastnames() {
 	m.lastnames = nil
 }
 
+// SetBirthday sets the "birthday" field.
+func (m *UserMutation) SetBirthday(t time.Time) {
+	m.birthday = &t
+}
+
+// Birthday returns the value of the "birthday" field in the mutation.
+func (m *UserMutation) Birthday() (r time.Time, exists bool) {
+	v := m.birthday
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBirthday returns the old "birthday" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldBirthday(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldBirthday is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldBirthday requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBirthday: %w", err)
+	}
+	return oldValue.Birthday, nil
+}
+
+// ResetBirthday resets all changes to the "birthday" field.
+func (m *UserMutation) ResetBirthday() {
+	m.birthday = nil
+}
+
+// SetEmail sets the "email" field.
+func (m *UserMutation) SetEmail(s string) {
+	m.email = &s
+}
+
+// Email returns the value of the "email" field in the mutation.
+func (m *UserMutation) Email() (r string, exists bool) {
+	v := m.email
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmail returns the old "email" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldEmail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldEmail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldEmail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmail: %w", err)
+	}
+	return oldValue.Email, nil
+}
+
+// ResetEmail resets all changes to the "email" field.
+func (m *UserMutation) ResetEmail() {
+	m.email = nil
+}
+
+// SetActivate sets the "activate" field.
+func (m *UserMutation) SetActivate(b bool) {
+	m.activate = &b
+}
+
+// Activate returns the value of the "activate" field in the mutation.
+func (m *UserMutation) Activate() (r bool, exists bool) {
+	v := m.activate
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActivate returns the old "activate" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldActivate(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldActivate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldActivate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActivate: %w", err)
+	}
+	return oldValue.Activate, nil
+}
+
+// ResetActivate resets all changes to the "activate" field.
+func (m *UserMutation) ResetActivate() {
+	m.activate = nil
+}
+
+// AddPropertyIDs adds the "properties" edge to the Property entity by ids.
+func (m *UserMutation) AddPropertyIDs(ids ...int) {
+	if m.properties == nil {
+		m.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.properties[ids[i]] = struct{}{}
+	}
+}
+
+// ClearProperties clears the "properties" edge to the Property entity.
+func (m *UserMutation) ClearProperties() {
+	m.clearedproperties = true
+}
+
+// PropertiesCleared reports if the "properties" edge to the Property entity was cleared.
+func (m *UserMutation) PropertiesCleared() bool {
+	return m.clearedproperties
+}
+
+// RemovePropertyIDs removes the "properties" edge to the Property entity by IDs.
+func (m *UserMutation) RemovePropertyIDs(ids ...int) {
+	if m.removedproperties == nil {
+		m.removedproperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.properties, ids[i])
+		m.removedproperties[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedProperties returns the removed IDs of the "properties" edge to the Property entity.
+func (m *UserMutation) RemovedPropertiesIDs() (ids []int) {
+	for id := range m.removedproperties {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PropertiesIDs returns the "properties" edge IDs in the mutation.
+func (m *UserMutation) PropertiesIDs() (ids []int) {
+	for id := range m.properties {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetProperties resets all changes to the "properties" edge.
+func (m *UserMutation) ResetProperties() {
+	m.properties = nil
+	m.clearedproperties = false
+	m.removedproperties = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -267,7 +907,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 6)
 	if m.age != nil {
 		fields = append(fields, user.FieldAge)
 	}
@@ -276,6 +916,15 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.lastnames != nil {
 		fields = append(fields, user.FieldLastnames)
+	}
+	if m.birthday != nil {
+		fields = append(fields, user.FieldBirthday)
+	}
+	if m.email != nil {
+		fields = append(fields, user.FieldEmail)
+	}
+	if m.activate != nil {
+		fields = append(fields, user.FieldActivate)
 	}
 	return fields
 }
@@ -291,6 +940,12 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Names()
 	case user.FieldLastnames:
 		return m.Lastnames()
+	case user.FieldBirthday:
+		return m.Birthday()
+	case user.FieldEmail:
+		return m.Email()
+	case user.FieldActivate:
+		return m.Activate()
 	}
 	return nil, false
 }
@@ -306,6 +961,12 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldNames(ctx)
 	case user.FieldLastnames:
 		return m.OldLastnames(ctx)
+	case user.FieldBirthday:
+		return m.OldBirthday(ctx)
+	case user.FieldEmail:
+		return m.OldEmail(ctx)
+	case user.FieldActivate:
+		return m.OldActivate(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -335,6 +996,27 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLastnames(v)
+		return nil
+	case user.FieldBirthday:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBirthday(v)
+		return nil
+	case user.FieldEmail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmail(v)
+		return nil
+	case user.FieldActivate:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActivate(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -409,54 +1091,99 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldLastnames:
 		m.ResetLastnames()
 		return nil
+	case user.FieldBirthday:
+		m.ResetBirthday()
+		return nil
+	case user.FieldEmail:
+		m.ResetEmail()
+		return nil
+	case user.FieldActivate:
+		m.ResetActivate()
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.properties != nil {
+		edges = append(edges, user.EdgeProperties)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case user.EdgeProperties:
+		ids := make([]ent.Value, 0, len(m.properties))
+		for id := range m.properties {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedproperties != nil {
+		edges = append(edges, user.EdgeProperties)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case user.EdgeProperties:
+		ids := make([]ent.Value, 0, len(m.removedproperties))
+		for id := range m.removedproperties {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedproperties {
+		edges = append(edges, user.EdgeProperties)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *UserMutation) EdgeCleared(name string) bool {
+	switch name {
+	case user.EdgeProperties:
+		return m.clearedproperties
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *UserMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown User unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
+	switch name {
+	case user.EdgeProperties:
+		m.ResetProperties()
+		return nil
+	}
 	return fmt.Errorf("unknown User edge %s", name)
 }

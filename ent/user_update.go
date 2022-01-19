@@ -5,11 +5,13 @@ package ent
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/amaru0601/go-rent/ent/predicate"
+	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 )
 
@@ -51,9 +53,63 @@ func (uu *UserUpdate) SetLastnames(s string) *UserUpdate {
 	return uu
 }
 
+// SetBirthday sets the "birthday" field.
+func (uu *UserUpdate) SetBirthday(t time.Time) *UserUpdate {
+	uu.mutation.SetBirthday(t)
+	return uu
+}
+
+// SetEmail sets the "email" field.
+func (uu *UserUpdate) SetEmail(s string) *UserUpdate {
+	uu.mutation.SetEmail(s)
+	return uu
+}
+
+// SetActivate sets the "activate" field.
+func (uu *UserUpdate) SetActivate(b bool) *UserUpdate {
+	uu.mutation.SetActivate(b)
+	return uu
+}
+
+// AddPropertyIDs adds the "properties" edge to the Property entity by IDs.
+func (uu *UserUpdate) AddPropertyIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddPropertyIDs(ids...)
+	return uu
+}
+
+// AddProperties adds the "properties" edges to the Property entity.
+func (uu *UserUpdate) AddProperties(p ...*Property) *UserUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uu.AddPropertyIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
+}
+
+// ClearProperties clears all "properties" edges to the Property entity.
+func (uu *UserUpdate) ClearProperties() *UserUpdate {
+	uu.mutation.ClearProperties()
+	return uu
+}
+
+// RemovePropertyIDs removes the "properties" edge to Property entities by IDs.
+func (uu *UserUpdate) RemovePropertyIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemovePropertyIDs(ids...)
+	return uu
+}
+
+// RemoveProperties removes "properties" edges to Property entities.
+func (uu *UserUpdate) RemoveProperties(p ...*Property) *UserUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uu.RemovePropertyIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -133,6 +189,11 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "lastnames", err: fmt.Errorf("ent: validator failed for field \"lastnames\": %w", err)}
 		}
 	}
+	if v, ok := uu.mutation.Email(); ok {
+		if err := user.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
+		}
+	}
 	return nil
 }
 
@@ -182,6 +243,81 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldLastnames,
 		})
 	}
+	if value, ok := uu.mutation.Birthday(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: user.FieldBirthday,
+		})
+	}
+	if value, ok := uu.mutation.Email(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldEmail,
+		})
+	}
+	if value, ok := uu.mutation.Activate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: user.FieldActivate,
+		})
+	}
+	if uu.mutation.PropertiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PropertiesTable,
+			Columns: []string{user.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: property.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedPropertiesIDs(); len(nodes) > 0 && !uu.mutation.PropertiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PropertiesTable,
+			Columns: []string{user.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.PropertiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PropertiesTable,
+			Columns: []string{user.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -226,9 +362,63 @@ func (uuo *UserUpdateOne) SetLastnames(s string) *UserUpdateOne {
 	return uuo
 }
 
+// SetBirthday sets the "birthday" field.
+func (uuo *UserUpdateOne) SetBirthday(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetBirthday(t)
+	return uuo
+}
+
+// SetEmail sets the "email" field.
+func (uuo *UserUpdateOne) SetEmail(s string) *UserUpdateOne {
+	uuo.mutation.SetEmail(s)
+	return uuo
+}
+
+// SetActivate sets the "activate" field.
+func (uuo *UserUpdateOne) SetActivate(b bool) *UserUpdateOne {
+	uuo.mutation.SetActivate(b)
+	return uuo
+}
+
+// AddPropertyIDs adds the "properties" edge to the Property entity by IDs.
+func (uuo *UserUpdateOne) AddPropertyIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddPropertyIDs(ids...)
+	return uuo
+}
+
+// AddProperties adds the "properties" edges to the Property entity.
+func (uuo *UserUpdateOne) AddProperties(p ...*Property) *UserUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uuo.AddPropertyIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
+}
+
+// ClearProperties clears all "properties" edges to the Property entity.
+func (uuo *UserUpdateOne) ClearProperties() *UserUpdateOne {
+	uuo.mutation.ClearProperties()
+	return uuo
+}
+
+// RemovePropertyIDs removes the "properties" edge to Property entities by IDs.
+func (uuo *UserUpdateOne) RemovePropertyIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemovePropertyIDs(ids...)
+	return uuo
+}
+
+// RemoveProperties removes "properties" edges to Property entities.
+func (uuo *UserUpdateOne) RemoveProperties(p ...*Property) *UserUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return uuo.RemovePropertyIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -315,6 +505,11 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "lastnames", err: fmt.Errorf("ent: validator failed for field \"lastnames\": %w", err)}
 		}
 	}
+	if v, ok := uuo.mutation.Email(); ok {
+		if err := user.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
+		}
+	}
 	return nil
 }
 
@@ -380,6 +575,81 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Value:  value,
 			Column: user.FieldLastnames,
 		})
+	}
+	if value, ok := uuo.mutation.Birthday(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: user.FieldBirthday,
+		})
+	}
+	if value, ok := uuo.mutation.Email(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldEmail,
+		})
+	}
+	if value, ok := uuo.mutation.Activate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: user.FieldActivate,
+		})
+	}
+	if uuo.mutation.PropertiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PropertiesTable,
+			Columns: []string{user.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: property.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedPropertiesIDs(); len(nodes) > 0 && !uuo.mutation.PropertiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PropertiesTable,
+			Columns: []string{user.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.PropertiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PropertiesTable,
+			Columns: []string{user.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues

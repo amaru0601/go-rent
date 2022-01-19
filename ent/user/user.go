@@ -13,8 +13,23 @@ const (
 	FieldNames = "names"
 	// FieldLastnames holds the string denoting the lastnames field in the database.
 	FieldLastnames = "lastnames"
+	// FieldBirthday holds the string denoting the birthday field in the database.
+	FieldBirthday = "birthday"
+	// FieldEmail holds the string denoting the email field in the database.
+	FieldEmail = "email"
+	// FieldActivate holds the string denoting the activate field in the database.
+	FieldActivate = "activate"
+	// EdgeProperties holds the string denoting the properties edge name in mutations.
+	EdgeProperties = "properties"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// PropertiesTable is the table that holds the properties relation/edge.
+	PropertiesTable = "properties"
+	// PropertiesInverseTable is the table name for the Property entity.
+	// It exists in this package in order to avoid circular dependency with the "property" package.
+	PropertiesInverseTable = "properties"
+	// PropertiesColumn is the table column denoting the properties relation/edge.
+	PropertiesColumn = "user_properties"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -23,6 +38,9 @@ var Columns = []string{
 	FieldAge,
 	FieldNames,
 	FieldLastnames,
+	FieldBirthday,
+	FieldEmail,
+	FieldActivate,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -42,4 +60,6 @@ var (
 	NamesValidator func(string) error
 	// LastnamesValidator is a validator for the "lastnames" field. It is called by the builders before save.
 	LastnamesValidator func(string) error
+	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
+	EmailValidator func(string) error
 )

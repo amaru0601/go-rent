@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/amaru0601/go-rent/ent/user"
@@ -21,6 +22,33 @@ type User struct {
 	Names string `json:"names,omitempty"`
 	// Lastnames holds the value of the "lastnames" field.
 	Lastnames string `json:"lastnames,omitempty"`
+	// Birthday holds the value of the "birthday" field.
+	Birthday time.Time `json:"birthday,omitempty"`
+	// Email holds the value of the "email" field.
+	Email string `json:"email,omitempty"`
+	// Activate holds the value of the "activate" field.
+	Activate bool `json:"activate,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges UserEdges `json:"edges"`
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Properties holds the value of the properties edge.
+	Properties []*Property `json:"properties,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// PropertiesOrErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) PropertiesOrErr() ([]*Property, error) {
+	if e.loadedTypes[0] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -28,10 +56,14 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldActivate:
+			values[i] = new(sql.NullBool)
 		case user.FieldID, user.FieldAge:
 			values[i] = new(sql.NullInt64)
-		case user.FieldNames, user.FieldLastnames:
+		case user.FieldNames, user.FieldLastnames, user.FieldEmail:
 			values[i] = new(sql.NullString)
+		case user.FieldBirthday:
+			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
 		}
@@ -71,9 +103,32 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.Lastnames = value.String
 			}
+		case user.FieldBirthday:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field birthday", values[i])
+			} else if value.Valid {
+				u.Birthday = value.Time
+			}
+		case user.FieldEmail:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field email", values[i])
+			} else if value.Valid {
+				u.Email = value.String
+			}
+		case user.FieldActivate:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field activate", values[i])
+			} else if value.Valid {
+				u.Activate = value.Bool
+			}
 		}
 	}
 	return nil
+}
+
+// QueryProperties queries the "properties" edge of the User entity.
+func (u *User) QueryProperties() *PropertyQuery {
+	return (&UserClient{config: u.config}).QueryProperties(u)
 }
 
 // Update returns a builder for updating this User.
@@ -105,6 +160,12 @@ func (u *User) String() string {
 	builder.WriteString(u.Names)
 	builder.WriteString(", lastnames=")
 	builder.WriteString(u.Lastnames)
+	builder.WriteString(", birthday=")
+	builder.WriteString(u.Birthday.Format(time.ANSIC))
+	builder.WriteString(", email=")
+	builder.WriteString(u.Email)
+	builder.WriteString(", activate=")
+	builder.WriteString(fmt.Sprintf("%v", u.Activate))
 	builder.WriteByte(')')
 	return builder.String()
 }

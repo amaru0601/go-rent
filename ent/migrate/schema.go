@@ -8,12 +8,37 @@ import (
 )
 
 var (
+	// PropertiesColumns holds the columns for the "properties" table.
+	PropertiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"house", "apartment", "premises", "office", "vehicle"}, Default: "apartment"},
+		{Name: "name", Type: field.TypeString},
+		{Name: "deleted", Type: field.TypeBool},
+		{Name: "user_properties", Type: field.TypeInt, Nullable: true},
+	}
+	// PropertiesTable holds the schema information for the "properties" table.
+	PropertiesTable = &schema.Table{
+		Name:       "properties",
+		Columns:    PropertiesColumns,
+		PrimaryKey: []*schema.Column{PropertiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "properties_users_properties",
+				Columns:    []*schema.Column{PropertiesColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "age", Type: field.TypeInt},
 		{Name: "names", Type: field.TypeString},
 		{Name: "lastnames", Type: field.TypeString},
+		{Name: "birthday", Type: field.TypeTime},
+		{Name: "email", Type: field.TypeString},
+		{Name: "activate", Type: field.TypeBool},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -23,9 +48,11 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		PropertiesTable,
 		UsersTable,
 	}
 )
 
 func init() {
+	PropertiesTable.ForeignKeys[0].RefTable = UsersTable
 }
