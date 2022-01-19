@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -16,10 +17,15 @@ func (User) Fields() []ent.Field {
 		field.Int("age").Positive(),
 		field.String("names").NotEmpty(),
 		field.String("lastnames").NotEmpty(),
+		field.Time("birthday"),
+		field.String("email").NotEmpty(),
+		field.Bool("activate"),
 	}
 }
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("properties", Property.Type),
+	}
 }
