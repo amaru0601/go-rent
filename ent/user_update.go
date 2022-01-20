@@ -71,6 +71,12 @@ func (uu *UserUpdate) SetActivate(b bool) *UserUpdate {
 	return uu
 }
 
+// SetCreatedAt sets the "createdAt" field.
+func (uu *UserUpdate) SetCreatedAt(t time.Time) *UserUpdate {
+	uu.mutation.SetCreatedAt(t)
+	return uu
+}
+
 // AddPropertyIDs adds the "properties" edge to the Property entity by IDs.
 func (uu *UserUpdate) AddPropertyIDs(ids ...int) *UserUpdate {
 	uu.mutation.AddPropertyIDs(ids...)
@@ -264,6 +270,13 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldActivate,
 		})
 	}
+	if value, ok := uu.mutation.CreatedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: user.FieldCreatedAt,
+		})
+	}
 	if uu.mutation.PropertiesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -377,6 +390,12 @@ func (uuo *UserUpdateOne) SetEmail(s string) *UserUpdateOne {
 // SetActivate sets the "activate" field.
 func (uuo *UserUpdateOne) SetActivate(b bool) *UserUpdateOne {
 	uuo.mutation.SetActivate(b)
+	return uuo
+}
+
+// SetCreatedAt sets the "createdAt" field.
+func (uuo *UserUpdateOne) SetCreatedAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetCreatedAt(t)
 	return uuo
 }
 
@@ -595,6 +614,13 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: user.FieldActivate,
+		})
+	}
+	if value, ok := uuo.mutation.CreatedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: user.FieldCreatedAt,
 		})
 	}
 	if uuo.mutation.PropertiesCleared() {

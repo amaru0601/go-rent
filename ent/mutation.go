@@ -510,6 +510,7 @@ type UserMutation struct {
 	birthday          *time.Time
 	email             *string
 	activate          *bool
+	createdAt         *time.Time
 	clearedFields     map[string]struct{}
 	properties        map[int]struct{}
 	removedproperties map[int]struct{}
@@ -834,6 +835,42 @@ func (m *UserMutation) ResetActivate() {
 	m.activate = nil
 }
 
+// SetCreatedAt sets the "createdAt" field.
+func (m *UserMutation) SetCreatedAt(t time.Time) {
+	m.createdAt = &t
+}
+
+// CreatedAt returns the value of the "createdAt" field in the mutation.
+func (m *UserMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.createdAt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "createdAt" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "createdAt" field.
+func (m *UserMutation) ResetCreatedAt() {
+	m.createdAt = nil
+}
+
 // AddPropertyIDs adds the "properties" edge to the Property entity by ids.
 func (m *UserMutation) AddPropertyIDs(ids ...int) {
 	if m.properties == nil {
@@ -907,7 +944,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.age != nil {
 		fields = append(fields, user.FieldAge)
 	}
@@ -925,6 +962,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.activate != nil {
 		fields = append(fields, user.FieldActivate)
+	}
+	if m.createdAt != nil {
+		fields = append(fields, user.FieldCreatedAt)
 	}
 	return fields
 }
@@ -946,6 +986,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case user.FieldActivate:
 		return m.Activate()
+	case user.FieldCreatedAt:
+		return m.CreatedAt()
 	}
 	return nil, false
 }
@@ -967,6 +1009,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEmail(ctx)
 	case user.FieldActivate:
 		return m.OldActivate(ctx)
+	case user.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1017,6 +1061,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetActivate(v)
+		return nil
+	case user.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -1099,6 +1150,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldActivate:
 		m.ResetActivate()
+		return nil
+	case user.FieldCreatedAt:
+		m.ResetCreatedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

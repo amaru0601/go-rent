@@ -1,4 +1,4 @@
-package main
+package user
 
 import (
 	"github.com/amaru0601/go-rent/db"

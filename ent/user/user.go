@@ -19,6 +19,8 @@ const (
 	FieldEmail = "email"
 	// FieldActivate holds the string denoting the activate field in the database.
 	FieldActivate = "activate"
+	// FieldCreatedAt holds the string denoting the createdat field in the database.
+	FieldCreatedAt = "created_at"
 	// EdgeProperties holds the string denoting the properties edge name in mutations.
 	EdgeProperties = "properties"
 	// Table holds the table name of the user in the database.
@@ -41,6 +43,7 @@ var Columns = []string{
 	FieldBirthday,
 	FieldEmail,
 	FieldActivate,
+	FieldCreatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

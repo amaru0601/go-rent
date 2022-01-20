@@ -21,15 +21,10 @@ require (
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/graphql-go/graphql v0.7.10-0.20210411022516-8a92e977c10b // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/mattn/go-runewidth v0.0.9 // indirect
-	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
-	github.com/spf13/cobra v1.1.3 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/vmihailenco/tagparser v0.1.2 // indirect

@@ -39,6 +39,7 @@ var (
 		{Name: "birthday", Type: field.TypeTime},
 		{Name: "email", Type: field.TypeString},
 		{Name: "activate", Type: field.TypeBool},
+		{Name: "created_at", Type: field.TypeTime},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

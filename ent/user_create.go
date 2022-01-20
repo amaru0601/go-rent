@@ -57,6 +57,12 @@ func (uc *UserCreate) SetActivate(b bool) *UserCreate {
 	return uc
 }
 
+// SetCreatedAt sets the "createdAt" field.
+func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
+	uc.mutation.SetCreatedAt(t)
+	return uc
+}
+
 // AddPropertyIDs adds the "properties" edge to the Property entity by IDs.
 func (uc *UserCreate) AddPropertyIDs(ids ...int) *UserCreate {
 	uc.mutation.AddPropertyIDs(ids...)
@@ -180,6 +186,9 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Activate(); !ok {
 		return &ValidationError{Name: "activate", err: errors.New(`ent: missing required field "activate"`)}
 	}
+	if _, ok := uc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "createdAt", err: errors.New(`ent: missing required field "createdAt"`)}
+	}
 	return nil
 }
 
@@ -254,6 +263,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldActivate,
 		})
 		_node.Activate = value
+	}
+	if value, ok := uc.mutation.CreatedAt(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: user.FieldCreatedAt,
+		})
+		_node.CreatedAt = value
 	}
 	if nodes := uc.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

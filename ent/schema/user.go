@@ -20,6 +20,7 @@ func (User) Fields() []ent.Field {
 		field.Time("birthday"),
 		field.String("email").NotEmpty(),
 		field.Bool("activate"),
+		field.Time("createdAt"),
 	}
 }
 

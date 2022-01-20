@@ -28,6 +28,8 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// Activate holds the value of the "activate" field.
 	Activate bool `json:"activate,omitempty"`
+	// CreatedAt holds the value of the "createdAt" field.
+	CreatedAt time.Time `json:"createdAt,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges UserEdges `json:"edges"`
@@ -62,7 +64,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case user.FieldNames, user.FieldLastnames, user.FieldEmail:
 			values[i] = new(sql.NullString)
-		case user.FieldBirthday:
+		case user.FieldBirthday, user.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
@@ -121,6 +123,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.Activate = value.Bool
 			}
+		case user.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field createdAt", values[i])
+			} else if value.Valid {
+				u.CreatedAt = value.Time
+			}
 		}
 	}
 	return nil
@@ -166,6 +174,8 @@ func (u *User) String() string {
 	builder.WriteString(u.Email)
 	builder.WriteString(", activate=")
 	builder.WriteString(fmt.Sprintf("%v", u.Activate))
+	builder.WriteString(", createdAt=")
+	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }
