@@ -15,7 +15,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, user UserInput) (*ent
 }
 
 func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.client.User.Query().All(ctx)
 }
 
 // Mutation returns MutationResolver implementation.
