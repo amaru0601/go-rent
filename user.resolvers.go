@@ -5,13 +5,19 @@ package user
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/amaru0601/go-rent/ent"
 )
 
 func (r *mutationResolver) CreateUser(ctx context.Context, user UserInput) (*ent.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.client.User.Create().
+		SetNames(user.Names).
+		SetLastnames(user.Lastnames).
+		SetEmail(user.Email).
+		SetActivate(true).
+		SetCreatedAt(time.Now()).
+		SetBirthday(*user.Birthday).Save(ctx)
 }
 
 func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {

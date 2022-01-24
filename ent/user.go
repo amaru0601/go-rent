@@ -16,8 +16,6 @@ type User struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Age holds the value of the "age" field.
-	Age int `json:"age,omitempty"`
 	// Names holds the value of the "names" field.
 	Names string `json:"names,omitempty"`
 	// Lastnames holds the value of the "lastnames" field.
@@ -60,7 +58,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case user.FieldActivate:
 			values[i] = new(sql.NullBool)
-		case user.FieldID, user.FieldAge:
+		case user.FieldID:
 			values[i] = new(sql.NullInt64)
 		case user.FieldNames, user.FieldLastnames, user.FieldEmail:
 			values[i] = new(sql.NullString)
@@ -87,12 +85,6 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			u.ID = int(value.Int64)
-		case user.FieldAge:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field age", values[i])
-			} else if value.Valid {
-				u.Age = int(value.Int64)
-			}
 		case user.FieldNames:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field names", values[i])
@@ -162,8 +154,6 @@ func (u *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v", u.ID))
-	builder.WriteString(", age=")
-	builder.WriteString(fmt.Sprintf("%v", u.Age))
 	builder.WriteString(", names=")
 	builder.WriteString(u.Names)
 	builder.WriteString(", lastnames=")

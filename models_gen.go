@@ -7,9 +7,9 @@ import (
 )
 
 type UserInput struct {
-	Age       int        `json:"age"`
 	Birthday  *time.Time `json:"birthday"`
 	Names     string     `json:"names"`
 	Lastnames string     `json:"lastnames"`
-	Activate  bool       `json:"activate"`
+	Activate  *bool      `json:"activate"`
+	Email     string     `json:"email"`
 }

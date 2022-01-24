@@ -14,7 +14,6 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("age").Positive(),
 		field.String("names").NotEmpty(),
 		field.String("lastnames").NotEmpty(),
 		field.Time("birthday"),

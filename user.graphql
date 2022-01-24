@@ -3,19 +3,19 @@ scalar Time
 type User {
     id: ID!
     createdAt: Time
-    age: Int!
     names: String!
     lastnames: String!
     activate: Boolean!
+    email: String!
     birthday: Time
 }
 
 input UserInput {
-    age: Int!
     birthday: Time
     names: String!
     lastnames: String!
-    activate: Boolean!
+    activate: Boolean
+    email: String!
 }
 
 type Mutation {

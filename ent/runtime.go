@@ -20,20 +20,16 @@ func init() {
 	property.NameValidator = propertyDescName.Validators[0].(func(string) error)
 	userFields := schema.User{}.Fields()
 	_ = userFields
-	// userDescAge is the schema descriptor for age field.
-	userDescAge := userFields[0].Descriptor()
-	// user.AgeValidator is a validator for the "age" field. It is called by the builders before save.
-	user.AgeValidator = userDescAge.Validators[0].(func(int) error)
 	// userDescNames is the schema descriptor for names field.
-	userDescNames := userFields[1].Descriptor()
+	userDescNames := userFields[0].Descriptor()
 	// user.NamesValidator is a validator for the "names" field. It is called by the builders before save.
 	user.NamesValidator = userDescNames.Validators[0].(func(string) error)
 	// userDescLastnames is the schema descriptor for lastnames field.
-	userDescLastnames := userFields[2].Descriptor()
+	userDescLastnames := userFields[1].Descriptor()
 	// user.LastnamesValidator is a validator for the "lastnames" field. It is called by the builders before save.
 	user.LastnamesValidator = userDescLastnames.Validators[0].(func(string) error)
 	// userDescEmail is the schema descriptor for email field.
-	userDescEmail := userFields[4].Descriptor()
+	userDescEmail := userFields[3].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
 }

@@ -33,7 +33,6 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "age", Type: field.TypeInt},
 		{Name: "names", Type: field.TypeString},
 		{Name: "lastnames", Type: field.TypeString},
 		{Name: "birthday", Type: field.TypeTime},
