@@ -6,13 +6,15 @@ package user
 import (
 	"context"
 	"fmt"
+
+	"github.com/amaru0601/go-rent/ent"
 )
 
-func (r *mutationResolver) CreateUser(ctx context.Context, user UserInput) (*User, error) {
+func (r *mutationResolver) CreateUser(ctx context.Context, user UserInput) (*ent.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Users(ctx context.Context) ([]*User, error) {
+func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 

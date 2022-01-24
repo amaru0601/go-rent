@@ -6,16 +6,6 @@ import (
 	"time"
 )
 
-type User struct {
-	ID        int        `json:"id"`
-	CreatedAt *time.Time `json:"createdAt"`
-	Age       int        `json:"age"`
-	Names     string     `json:"names"`
-	Lastnames string     `json:"lastnames"`
-	Activate  bool       `json:"activate"`
-	Birthday  *time.Time `json:"birthday"`
-}
-
 type UserInput struct {
 	Age       int        `json:"age"`
 	Birthday  *time.Time `json:"birthday"`

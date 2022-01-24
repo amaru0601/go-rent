@@ -6,7 +6,7 @@ resolver:
   dir: .
 
 autobind:
-  - user/ent
+  - "github.com/amaru0601/go-rent/ent"
 
 models:
   ID:
