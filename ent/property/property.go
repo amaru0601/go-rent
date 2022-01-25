@@ -13,8 +13,8 @@ const (
 	Label = "property"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldType holds the string denoting the type field in the database.
-	FieldType = "type"
+	// FieldClass holds the string denoting the class field in the database.
+	FieldClass = "class"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldDeleted holds the string denoting the deleted field in the database.
@@ -35,7 +35,7 @@ const (
 // Columns holds all SQL columns for property fields.
 var Columns = []string{
 	FieldID,
-	FieldType,
+	FieldClass,
 	FieldName,
 	FieldDeleted,
 }
@@ -66,49 +66,49 @@ var (
 	NameValidator func(string) error
 )
 
-// Type defines the type for the "type" enum field.
-type Type string
+// Class defines the type for the "class" enum field.
+type Class string
 
-// TypeApartment is the default value of the Type enum.
-const DefaultType = TypeApartment
+// ClassApartment is the default value of the Class enum.
+const DefaultClass = ClassApartment
 
-// Type values.
+// Class values.
 const (
-	TypeHouse     Type = "house"
-	TypeApartment Type = "apartment"
-	TypePremises  Type = "premises"
-	TypeOffice    Type = "office"
-	TypeVehicle   Type = "vehicle"
+	ClassHouse     Class = "house"
+	ClassApartment Class = "apartment"
+	ClassPremises  Class = "premises"
+	ClassOffice    Class = "office"
+	ClassVehicle   Class = "vehicle"
 )
 
-func (_type Type) String() string {
-	return string(_type)
+func (c Class) String() string {
+	return string(c)
 }
 
-// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
-func TypeValidator(_type Type) error {
-	switch _type {
-	case TypeHouse, TypeApartment, TypePremises, TypeOffice, TypeVehicle:
+// ClassValidator is a validator for the "class" field enum values. It is called by the builders before save.
+func ClassValidator(c Class) error {
+	switch c {
+	case ClassHouse, ClassApartment, ClassPremises, ClassOffice, ClassVehicle:
 		return nil
 	default:
-		return fmt.Errorf("property: invalid enum value for type field: %q", _type)
+		return fmt.Errorf("property: invalid enum value for class field: %q", c)
 	}
 }
 
 // MarshalGQL implements graphql.Marshaler interface.
-func (_type Type) MarshalGQL(w io.Writer) {
-	io.WriteString(w, strconv.Quote(_type.String()))
+func (c Class) MarshalGQL(w io.Writer) {
+	io.WriteString(w, strconv.Quote(c.String()))
 }
 
 // UnmarshalGQL implements graphql.Unmarshaler interface.
-func (_type *Type) UnmarshalGQL(val interface{}) error {
+func (c *Class) UnmarshalGQL(val interface{}) error {
 	str, ok := val.(string)
 	if !ok {
 		return fmt.Errorf("enum %T must be a string", val)
 	}
-	*_type = Type(str)
-	if err := TypeValidator(*_type); err != nil {
-		return fmt.Errorf("%s is not a valid Type", str)
+	*c = Class(str)
+	if err := ClassValidator(*c); err != nil {
+		return fmt.Errorf("%s is not a valid Class", str)
 	}
 	return nil
 }

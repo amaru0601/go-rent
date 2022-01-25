@@ -34,7 +34,7 @@ type PropertyMutation struct {
 	op            Op
 	typ           string
 	id            *int
-	_type         *property.Type
+	class         *property.Class
 	name          *string
 	deleted       *bool
 	clearedFields map[string]struct{}
@@ -124,40 +124,40 @@ func (m *PropertyMutation) ID() (id int, exists bool) {
 	return *m.id, true
 }
 
-// SetType sets the "type" field.
-func (m *PropertyMutation) SetType(pr property.Type) {
-	m._type = &pr
+// SetClass sets the "class" field.
+func (m *PropertyMutation) SetClass(pr property.Class) {
+	m.class = &pr
 }
 
-// GetType returns the value of the "type" field in the mutation.
-func (m *PropertyMutation) GetType() (r property.Type, exists bool) {
-	v := m._type
+// Class returns the value of the "class" field in the mutation.
+func (m *PropertyMutation) Class() (r property.Class, exists bool) {
+	v := m.class
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldType returns the old "type" field's value of the Property entity.
+// OldClass returns the old "class" field's value of the Property entity.
 // If the Property object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PropertyMutation) OldType(ctx context.Context) (v property.Type, err error) {
+func (m *PropertyMutation) OldClass(ctx context.Context) (v property.Class, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldType is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldClass is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldType requires an ID field in the mutation")
+		return v, fmt.Errorf("OldClass requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldType: %w", err)
+		return v, fmt.Errorf("querying old value for OldClass: %w", err)
 	}
-	return oldValue.Type, nil
+	return oldValue.Class, nil
 }
 
-// ResetType resets all changes to the "type" field.
-func (m *PropertyMutation) ResetType() {
-	m._type = nil
+// ResetClass resets all changes to the "class" field.
+func (m *PropertyMutation) ResetClass() {
+	m.class = nil
 }
 
 // SetName sets the "name" field.
@@ -291,8 +291,8 @@ func (m *PropertyMutation) Type() string {
 // AddedFields().
 func (m *PropertyMutation) Fields() []string {
 	fields := make([]string, 0, 3)
-	if m._type != nil {
-		fields = append(fields, property.FieldType)
+	if m.class != nil {
+		fields = append(fields, property.FieldClass)
 	}
 	if m.name != nil {
 		fields = append(fields, property.FieldName)
@@ -308,8 +308,8 @@ func (m *PropertyMutation) Fields() []string {
 // schema.
 func (m *PropertyMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case property.FieldType:
-		return m.GetType()
+	case property.FieldClass:
+		return m.Class()
 	case property.FieldName:
 		return m.Name()
 	case property.FieldDeleted:
@@ -323,8 +323,8 @@ func (m *PropertyMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *PropertyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case property.FieldType:
-		return m.OldType(ctx)
+	case property.FieldClass:
+		return m.OldClass(ctx)
 	case property.FieldName:
 		return m.OldName(ctx)
 	case property.FieldDeleted:
@@ -338,12 +338,12 @@ func (m *PropertyMutation) OldField(ctx context.Context, name string) (ent.Value
 // type.
 func (m *PropertyMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case property.FieldType:
-		v, ok := value.(property.Type)
+	case property.FieldClass:
+		v, ok := value.(property.Class)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetType(v)
+		m.SetClass(v)
 		return nil
 	case property.FieldName:
 		v, ok := value.(string)
@@ -408,8 +408,8 @@ func (m *PropertyMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *PropertyMutation) ResetField(name string) error {
 	switch name {
-	case property.FieldType:
-		m.ResetType()
+	case property.FieldClass:
+		m.ResetClass()
 		return nil
 	case property.FieldName:
 		m.ResetName()

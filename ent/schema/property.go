@@ -14,7 +14,7 @@ type Property struct {
 // Fields of the Property.
 func (Property) Fields() []ent.Field {
 	return []ent.Field{
-		field.Enum("type").Values(
+		field.Enum("class").Values(
 			"house",
 			"apartment",
 			"premises",

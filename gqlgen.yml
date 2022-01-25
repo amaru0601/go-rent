@@ -12,3 +12,7 @@ models:
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.IntID
+
+  TypeProperty:
+    model:
+      - github.com/amaru0601/go-rent/ent/property.Class

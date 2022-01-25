@@ -18,8 +18,30 @@ input UserInput {
     email: String!
 }
 
+enum TypeProperty {
+    HOUSE,
+    APARTMENT,
+    PREMISES,
+    OFFICE,
+    VEHICLE
+}
+
+type Property {
+    class: TypeProperty!
+    name: String!
+    deleted: Boolean!
+    owner: User!
+}
+
+input PropertyInput {
+    class: TypeProperty! = APARTMENT
+    name: String!
+    owner: ID!
+}
+
 type Mutation {
     createUser(user: UserInput!): User!
+    createProperty(property: PropertyInput!): Property
 }
 
 type Query {

@@ -105,22 +105,22 @@ func Deleted(v bool) predicate.Property {
 	})
 }
 
-// TypeEQ applies the EQ predicate on the "type" field.
-func TypeEQ(v Type) predicate.Property {
+// ClassEQ applies the EQ predicate on the "class" field.
+func ClassEQ(v Class) predicate.Property {
 	return predicate.Property(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldType), v))
+		s.Where(sql.EQ(s.C(FieldClass), v))
 	})
 }
 
-// TypeNEQ applies the NEQ predicate on the "type" field.
-func TypeNEQ(v Type) predicate.Property {
+// ClassNEQ applies the NEQ predicate on the "class" field.
+func ClassNEQ(v Class) predicate.Property {
 	return predicate.Property(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldType), v))
+		s.Where(sql.NEQ(s.C(FieldClass), v))
 	})
 }
 
-// TypeIn applies the In predicate on the "type" field.
-func TypeIn(vs ...Type) predicate.Property {
+// ClassIn applies the In predicate on the "class" field.
+func ClassIn(vs ...Class) predicate.Property {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -132,12 +132,12 @@ func TypeIn(vs ...Type) predicate.Property {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldType), v...))
+		s.Where(sql.In(s.C(FieldClass), v...))
 	})
 }
 
-// TypeNotIn applies the NotIn predicate on the "type" field.
-func TypeNotIn(vs ...Type) predicate.Property {
+// ClassNotIn applies the NotIn predicate on the "class" field.
+func ClassNotIn(vs ...Class) predicate.Property {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -149,7 +149,7 @@ func TypeNotIn(vs ...Type) predicate.Property {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldType), v...))
+		s.Where(sql.NotIn(s.C(FieldClass), v...))
 	})
 }
 

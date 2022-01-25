@@ -55,12 +55,12 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(pr.Type); err != nil {
+	if buf, err = json.Marshal(pr.Class); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
-		Type:  "property.Type",
-		Name:  "type",
+		Type:  "property.Class",
+		Name:  "class",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.Name); err != nil {

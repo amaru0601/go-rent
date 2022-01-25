@@ -20,16 +20,16 @@ type PropertyCreate struct {
 	hooks    []Hook
 }
 
-// SetType sets the "type" field.
-func (pc *PropertyCreate) SetType(pr property.Type) *PropertyCreate {
-	pc.mutation.SetType(pr)
+// SetClass sets the "class" field.
+func (pc *PropertyCreate) SetClass(pr property.Class) *PropertyCreate {
+	pc.mutation.SetClass(pr)
 	return pc
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (pc *PropertyCreate) SetNillableType(pr *property.Type) *PropertyCreate {
+// SetNillableClass sets the "class" field if the given value is not nil.
+func (pc *PropertyCreate) SetNillableClass(pr *property.Class) *PropertyCreate {
 	if pr != nil {
-		pc.SetType(*pr)
+		pc.SetClass(*pr)
 	}
 	return pc
 }
@@ -136,20 +136,20 @@ func (pc *PropertyCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *PropertyCreate) defaults() {
-	if _, ok := pc.mutation.GetType(); !ok {
-		v := property.DefaultType
-		pc.mutation.SetType(v)
+	if _, ok := pc.mutation.Class(); !ok {
+		v := property.DefaultClass
+		pc.mutation.SetClass(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (pc *PropertyCreate) check() error {
-	if _, ok := pc.mutation.GetType(); !ok {
-		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "type"`)}
+	if _, ok := pc.mutation.Class(); !ok {
+		return &ValidationError{Name: "class", err: errors.New(`ent: missing required field "class"`)}
 	}
-	if v, ok := pc.mutation.GetType(); ok {
-		if err := property.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "type": %w`, err)}
+	if v, ok := pc.mutation.Class(); ok {
+		if err := property.ClassValidator(v); err != nil {
+			return &ValidationError{Name: "class", err: fmt.Errorf(`ent: validator failed for field "class": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.Name(); !ok {
@@ -190,13 +190,13 @@ func (pc *PropertyCreate) createSpec() (*Property, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
-	if value, ok := pc.mutation.GetType(); ok {
+	if value, ok := pc.mutation.Class(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
 			Value:  value,
-			Column: property.FieldType,
+			Column: property.FieldClass,
 		})
-		_node.Type = value
+		_node.Class = value
 	}
 	if value, ok := pc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

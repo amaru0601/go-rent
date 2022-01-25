@@ -4,7 +4,15 @@ package user
 
 import (
 	"time"
+
+	"github.com/amaru0601/go-rent/ent/property"
 )
+
+type PropertyInput struct {
+	Class property.Class `json:"class"`
+	Name  string         `json:"name"`
+	Owner int            `json:"owner"`
+}
 
 type UserInput struct {
 	Birthday  *time.Time `json:"birthday"`

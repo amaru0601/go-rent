@@ -291,12 +291,12 @@ func (pq *PropertyQuery) WithOwner(opts ...func(*UserQuery)) *PropertyQuery {
 // Example:
 //
 //	var v []struct {
-//		Type property.Type `json:"type,omitempty"`
+//		Class property.Class `json:"class,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Property.Query().
-//		GroupBy(property.FieldType).
+//		GroupBy(property.FieldClass).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -318,11 +318,11 @@ func (pq *PropertyQuery) GroupBy(field string, fields ...string) *PropertyGroupB
 // Example:
 //
 //	var v []struct {
-//		Type property.Type `json:"type,omitempty"`
+//		Class property.Class `json:"class,omitempty"`
 //	}
 //
 //	client.Property.Query().
-//		Select(property.FieldType).
+//		Select(property.FieldClass).
 //		Scan(ctx, &v)
 //
 func (pq *PropertyQuery) Select(fields ...string) *PropertySelect {

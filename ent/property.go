@@ -16,8 +16,8 @@ type Property struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Type holds the value of the "type" field.
-	Type property.Type `json:"type,omitempty"`
+	// Class holds the value of the "class" field.
+	Class property.Class `json:"class,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Deleted holds the value of the "deleted" field.
@@ -60,7 +60,7 @@ func (*Property) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullBool)
 		case property.FieldID:
 			values[i] = new(sql.NullInt64)
-		case property.FieldType, property.FieldName:
+		case property.FieldClass, property.FieldName:
 			values[i] = new(sql.NullString)
 		case property.ForeignKeys[0]: // user_properties
 			values[i] = new(sql.NullInt64)
@@ -85,11 +85,11 @@ func (pr *Property) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			pr.ID = int(value.Int64)
-		case property.FieldType:
+		case property.FieldClass:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field type", values[i])
+				return fmt.Errorf("unexpected type %T for field class", values[i])
 			} else if value.Valid {
-				pr.Type = property.Type(value.String)
+				pr.Class = property.Class(value.String)
 			}
 		case property.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -143,8 +143,8 @@ func (pr *Property) String() string {
 	var builder strings.Builder
 	builder.WriteString("Property(")
 	builder.WriteString(fmt.Sprintf("id=%v", pr.ID))
-	builder.WriteString(", type=")
-	builder.WriteString(fmt.Sprintf("%v", pr.Type))
+	builder.WriteString(", class=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Class))
 	builder.WriteString(", name=")
 	builder.WriteString(pr.Name)
 	builder.WriteString(", deleted=")

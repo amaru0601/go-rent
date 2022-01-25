@@ -27,16 +27,16 @@ func (pu *PropertyUpdate) Where(ps ...predicate.Property) *PropertyUpdate {
 	return pu
 }
 
-// SetType sets the "type" field.
-func (pu *PropertyUpdate) SetType(pr property.Type) *PropertyUpdate {
-	pu.mutation.SetType(pr)
+// SetClass sets the "class" field.
+func (pu *PropertyUpdate) SetClass(pr property.Class) *PropertyUpdate {
+	pu.mutation.SetClass(pr)
 	return pu
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (pu *PropertyUpdate) SetNillableType(pr *property.Type) *PropertyUpdate {
+// SetNillableClass sets the "class" field if the given value is not nil.
+func (pu *PropertyUpdate) SetNillableClass(pr *property.Class) *PropertyUpdate {
 	if pr != nil {
-		pu.SetType(*pr)
+		pu.SetClass(*pr)
 	}
 	return pu
 }
@@ -145,9 +145,9 @@ func (pu *PropertyUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (pu *PropertyUpdate) check() error {
-	if v, ok := pu.mutation.GetType(); ok {
-		if err := property.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf("ent: validator failed for field \"type\": %w", err)}
+	if v, ok := pu.mutation.Class(); ok {
+		if err := property.ClassValidator(v); err != nil {
+			return &ValidationError{Name: "class", err: fmt.Errorf("ent: validator failed for field \"class\": %w", err)}
 		}
 	}
 	if v, ok := pu.mutation.Name(); ok {
@@ -176,11 +176,11 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := pu.mutation.GetType(); ok {
+	if value, ok := pu.mutation.Class(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
 			Value:  value,
-			Column: property.FieldType,
+			Column: property.FieldClass,
 		})
 	}
 	if value, ok := pu.mutation.Name(); ok {
@@ -251,16 +251,16 @@ type PropertyUpdateOne struct {
 	mutation *PropertyMutation
 }
 
-// SetType sets the "type" field.
-func (puo *PropertyUpdateOne) SetType(pr property.Type) *PropertyUpdateOne {
-	puo.mutation.SetType(pr)
+// SetClass sets the "class" field.
+func (puo *PropertyUpdateOne) SetClass(pr property.Class) *PropertyUpdateOne {
+	puo.mutation.SetClass(pr)
 	return puo
 }
 
-// SetNillableType sets the "type" field if the given value is not nil.
-func (puo *PropertyUpdateOne) SetNillableType(pr *property.Type) *PropertyUpdateOne {
+// SetNillableClass sets the "class" field if the given value is not nil.
+func (puo *PropertyUpdateOne) SetNillableClass(pr *property.Class) *PropertyUpdateOne {
 	if pr != nil {
-		puo.SetType(*pr)
+		puo.SetClass(*pr)
 	}
 	return puo
 }
@@ -376,9 +376,9 @@ func (puo *PropertyUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (puo *PropertyUpdateOne) check() error {
-	if v, ok := puo.mutation.GetType(); ok {
-		if err := property.TypeValidator(v); err != nil {
-			return &ValidationError{Name: "type", err: fmt.Errorf("ent: validator failed for field \"type\": %w", err)}
+	if v, ok := puo.mutation.Class(); ok {
+		if err := property.ClassValidator(v); err != nil {
+			return &ValidationError{Name: "class", err: fmt.Errorf("ent: validator failed for field \"class\": %w", err)}
 		}
 	}
 	if v, ok := puo.mutation.Name(); ok {
@@ -424,11 +424,11 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (_node *Property, err
 			}
 		}
 	}
-	if value, ok := puo.mutation.GetType(); ok {
+	if value, ok := puo.mutation.Class(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
 			Value:  value,
-			Column: property.FieldType,
+			Column: property.FieldClass,
 		})
 	}
 	if value, ok := puo.mutation.Name(); ok {
