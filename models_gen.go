@@ -9,9 +9,11 @@ import (
 )
 
 type PropertyInput struct {
-	Class property.Class `json:"class"`
-	Name  string         `json:"name"`
-	Owner int            `json:"owner"`
+	Class       property.Class `json:"class"`
+	Owner       int            `json:"owner"`
+	Address     string         `json:"address"`
+	Description string         `json:"description"`
+	City        string         `json:"city"`
 }
 
 type UserInput struct {

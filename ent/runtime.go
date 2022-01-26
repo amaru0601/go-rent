@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/schema"
 	"github.com/amaru0601/go-rent/ent/user"
 )
@@ -14,10 +13,6 @@ import (
 func init() {
 	propertyFields := schema.Property{}.Fields()
 	_ = propertyFields
-	// propertyDescName is the schema descriptor for name field.
-	propertyDescName := propertyFields[1].Descriptor()
-	// property.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	property.NameValidator = propertyDescName.Validators[0].(func(string) error)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescNames is the schema descriptor for names field.

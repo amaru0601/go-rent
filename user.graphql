@@ -28,15 +28,19 @@ enum TypeProperty {
 
 type Property {
     class: TypeProperty!
-    name: String!
     deleted: Boolean!
     owner: User!
+    address: String!
+    description: String!
+    city: String!
 }
 
 input PropertyInput {
     class: TypeProperty! = APARTMENT
-    name: String!
     owner: ID!
+    address: String!
+    description: String!
+    city: String!
 }
 
 type Mutation {

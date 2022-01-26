@@ -24,7 +24,9 @@ func (r *mutationResolver) CreateProperty(ctx context.Context, property Property
 	return r.client.Property.Create().
 		SetClass(property.Class).
 		SetDeleted(false).
-		SetName(property.Name).
+		SetAddress(property.Address).
+		SetCity(property.City).
+		SetDescription(property.Description).
 		SetOwnerID(property.Owner).Save(ctx)
 }
 

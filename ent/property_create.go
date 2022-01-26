@@ -34,9 +34,21 @@ func (pc *PropertyCreate) SetNillableClass(pr *property.Class) *PropertyCreate {
 	return pc
 }
 
-// SetName sets the "name" field.
-func (pc *PropertyCreate) SetName(s string) *PropertyCreate {
-	pc.mutation.SetName(s)
+// SetAddress sets the "address" field.
+func (pc *PropertyCreate) SetAddress(s string) *PropertyCreate {
+	pc.mutation.SetAddress(s)
+	return pc
+}
+
+// SetCity sets the "city" field.
+func (pc *PropertyCreate) SetCity(s string) *PropertyCreate {
+	pc.mutation.SetCity(s)
+	return pc
+}
+
+// SetDescription sets the "description" field.
+func (pc *PropertyCreate) SetDescription(s string) *PropertyCreate {
+	pc.mutation.SetDescription(s)
 	return pc
 }
 
@@ -152,13 +164,14 @@ func (pc *PropertyCreate) check() error {
 			return &ValidationError{Name: "class", err: fmt.Errorf(`ent: validator failed for field "class": %w`, err)}
 		}
 	}
-	if _, ok := pc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "name"`)}
+	if _, ok := pc.mutation.Address(); !ok {
+		return &ValidationError{Name: "address", err: errors.New(`ent: missing required field "address"`)}
 	}
-	if v, ok := pc.mutation.Name(); ok {
-		if err := property.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "name": %w`, err)}
-		}
+	if _, ok := pc.mutation.City(); !ok {
+		return &ValidationError{Name: "city", err: errors.New(`ent: missing required field "city"`)}
+	}
+	if _, ok := pc.mutation.Description(); !ok {
+		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "description"`)}
 	}
 	if _, ok := pc.mutation.Deleted(); !ok {
 		return &ValidationError{Name: "deleted", err: errors.New(`ent: missing required field "deleted"`)}
@@ -198,13 +211,29 @@ func (pc *PropertyCreate) createSpec() (*Property, *sqlgraph.CreateSpec) {
 		})
 		_node.Class = value
 	}
-	if value, ok := pc.mutation.Name(); ok {
+	if value, ok := pc.mutation.Address(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: property.FieldName,
+			Column: property.FieldAddress,
 		})
-		_node.Name = value
+		_node.Address = value
+	}
+	if value, ok := pc.mutation.City(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: property.FieldCity,
+		})
+		_node.City = value
+	}
+	if value, ok := pc.mutation.Description(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: property.FieldDescription,
+		})
+		_node.Description = value
 	}
 	if value, ok := pc.mutation.Deleted(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

@@ -51,7 +51,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     pr.ID,
 		Type:   "Property",
-		Fields: make([]*Field, 3),
+		Fields: make([]*Field, 5),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -63,18 +63,34 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "class",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(pr.Name); err != nil {
+	if buf, err = json.Marshal(pr.Address); err != nil {
 		return nil, err
 	}
 	node.Fields[1] = &Field{
 		Type:  "string",
-		Name:  "name",
+		Name:  "address",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pr.City); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "city",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pr.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "description",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(pr.Deleted); err != nil {
 		return nil, err
 	}
-	node.Fields[2] = &Field{
+	node.Fields[4] = &Field{
 		Type:  "bool",
 		Name:  "deleted",
 		Value: string(buf),

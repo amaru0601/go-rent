@@ -35,7 +35,9 @@ type PropertyMutation struct {
 	typ           string
 	id            *int
 	class         *property.Class
-	name          *string
+	address       *string
+	city          *string
+	description   *string
 	deleted       *bool
 	clearedFields map[string]struct{}
 	owner         *int
@@ -160,40 +162,112 @@ func (m *PropertyMutation) ResetClass() {
 	m.class = nil
 }
 
-// SetName sets the "name" field.
-func (m *PropertyMutation) SetName(s string) {
-	m.name = &s
+// SetAddress sets the "address" field.
+func (m *PropertyMutation) SetAddress(s string) {
+	m.address = &s
 }
 
-// Name returns the value of the "name" field in the mutation.
-func (m *PropertyMutation) Name() (r string, exists bool) {
-	v := m.name
+// Address returns the value of the "address" field in the mutation.
+func (m *PropertyMutation) Address() (r string, exists bool) {
+	v := m.address
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldName returns the old "name" field's value of the Property entity.
+// OldAddress returns the old "address" field's value of the Property entity.
 // If the Property object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PropertyMutation) OldName(ctx context.Context) (v string, err error) {
+func (m *PropertyMutation) OldAddress(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldName is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldAddress is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldName requires an ID field in the mutation")
+		return v, fmt.Errorf("OldAddress requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
+		return v, fmt.Errorf("querying old value for OldAddress: %w", err)
 	}
-	return oldValue.Name, nil
+	return oldValue.Address, nil
 }
 
-// ResetName resets all changes to the "name" field.
-func (m *PropertyMutation) ResetName() {
-	m.name = nil
+// ResetAddress resets all changes to the "address" field.
+func (m *PropertyMutation) ResetAddress() {
+	m.address = nil
+}
+
+// SetCity sets the "city" field.
+func (m *PropertyMutation) SetCity(s string) {
+	m.city = &s
+}
+
+// City returns the value of the "city" field in the mutation.
+func (m *PropertyMutation) City() (r string, exists bool) {
+	v := m.city
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCity returns the old "city" field's value of the Property entity.
+// If the Property object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PropertyMutation) OldCity(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCity: %w", err)
+	}
+	return oldValue.City, nil
+}
+
+// ResetCity resets all changes to the "city" field.
+func (m *PropertyMutation) ResetCity() {
+	m.city = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *PropertyMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *PropertyMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Property entity.
+// If the Property object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PropertyMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *PropertyMutation) ResetDescription() {
+	m.description = nil
 }
 
 // SetDeleted sets the "deleted" field.
@@ -290,12 +364,18 @@ func (m *PropertyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PropertyMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 5)
 	if m.class != nil {
 		fields = append(fields, property.FieldClass)
 	}
-	if m.name != nil {
-		fields = append(fields, property.FieldName)
+	if m.address != nil {
+		fields = append(fields, property.FieldAddress)
+	}
+	if m.city != nil {
+		fields = append(fields, property.FieldCity)
+	}
+	if m.description != nil {
+		fields = append(fields, property.FieldDescription)
 	}
 	if m.deleted != nil {
 		fields = append(fields, property.FieldDeleted)
@@ -310,8 +390,12 @@ func (m *PropertyMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case property.FieldClass:
 		return m.Class()
-	case property.FieldName:
-		return m.Name()
+	case property.FieldAddress:
+		return m.Address()
+	case property.FieldCity:
+		return m.City()
+	case property.FieldDescription:
+		return m.Description()
 	case property.FieldDeleted:
 		return m.Deleted()
 	}
@@ -325,8 +409,12 @@ func (m *PropertyMutation) OldField(ctx context.Context, name string) (ent.Value
 	switch name {
 	case property.FieldClass:
 		return m.OldClass(ctx)
-	case property.FieldName:
-		return m.OldName(ctx)
+	case property.FieldAddress:
+		return m.OldAddress(ctx)
+	case property.FieldCity:
+		return m.OldCity(ctx)
+	case property.FieldDescription:
+		return m.OldDescription(ctx)
 	case property.FieldDeleted:
 		return m.OldDeleted(ctx)
 	}
@@ -345,12 +433,26 @@ func (m *PropertyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetClass(v)
 		return nil
-	case property.FieldName:
+	case property.FieldAddress:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetName(v)
+		m.SetAddress(v)
+		return nil
+	case property.FieldCity:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCity(v)
+		return nil
+	case property.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
 		return nil
 	case property.FieldDeleted:
 		v, ok := value.(bool)
@@ -411,8 +513,14 @@ func (m *PropertyMutation) ResetField(name string) error {
 	case property.FieldClass:
 		m.ResetClass()
 		return nil
-	case property.FieldName:
-		m.ResetName()
+	case property.FieldAddress:
+		m.ResetAddress()
+		return nil
+	case property.FieldCity:
+		m.ResetCity()
+		return nil
+	case property.FieldDescription:
+		m.ResetDescription()
 		return nil
 	case property.FieldDeleted:
 		m.ResetDeleted()

@@ -15,13 +15,15 @@ type Property struct {
 func (Property) Fields() []ent.Field {
 	return []ent.Field{
 		field.Enum("class").Values(
-			"house",
-			"apartment",
-			"premises",
-			"office",
-			"vehicle",
-		).Default("apartment"),
-		field.String("name").NotEmpty(),
+			"HOUSE",
+			"APARTMENT",
+			"PREMISES",
+			"OFFICE",
+			"VEHICLE",
+		).Default("APARTMENT"),
+		field.String("address"),
+		field.String("city"),
+		field.String("description"),
 		field.Bool("deleted"),
 	}
 }

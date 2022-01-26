@@ -11,8 +11,10 @@ var (
 	// PropertiesColumns holds the columns for the "properties" table.
 	PropertiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "class", Type: field.TypeEnum, Enums: []string{"house", "apartment", "premises", "office", "vehicle"}, Default: "apartment"},
-		{Name: "name", Type: field.TypeString},
+		{Name: "class", Type: field.TypeEnum, Enums: []string{"HOUSE", "APARTMENT", "PREMISES", "OFFICE", "VEHICLE"}, Default: "APARTMENT"},
+		{Name: "address", Type: field.TypeString},
+		{Name: "city", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
 		{Name: "deleted", Type: field.TypeBool},
 		{Name: "user_properties", Type: field.TypeInt, Nullable: true},
 	}
@@ -24,7 +26,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "properties_users_properties",
-				Columns:    []*schema.Column{PropertiesColumns[4]},
+				Columns:    []*schema.Column{PropertiesColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

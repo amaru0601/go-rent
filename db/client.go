@@ -8,7 +8,7 @@ import (
 )
 
 func GetClient() (*ent.Client, error) {
-	client, err := ent.Open("postgres", "host=127.0.0.1 port=5434 user=postgres dbname=go-rent password=123456 sslmode=disable")
+	client, err := ent.Open("postgres", "host=127.0.0.1 port=5434 user=postgres password=123456 sslmode=disable")
 	if err != nil {
 		return nil, err
 	}

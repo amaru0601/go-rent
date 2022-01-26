@@ -15,8 +15,12 @@ const (
 	FieldID = "id"
 	// FieldClass holds the string denoting the class field in the database.
 	FieldClass = "class"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
+	// FieldAddress holds the string denoting the address field in the database.
+	FieldAddress = "address"
+	// FieldCity holds the string denoting the city field in the database.
+	FieldCity = "city"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
 	// FieldDeleted holds the string denoting the deleted field in the database.
 	FieldDeleted = "deleted"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
@@ -36,7 +40,9 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldClass,
-	FieldName,
+	FieldAddress,
+	FieldCity,
+	FieldDescription,
 	FieldDeleted,
 }
 
@@ -61,24 +67,19 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-var (
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
-)
-
 // Class defines the type for the "class" enum field.
 type Class string
 
-// ClassApartment is the default value of the Class enum.
-const DefaultClass = ClassApartment
+// ClassAPARTMENT is the default value of the Class enum.
+const DefaultClass = ClassAPARTMENT
 
 // Class values.
 const (
-	ClassHouse     Class = "house"
-	ClassApartment Class = "apartment"
-	ClassPremises  Class = "premises"
-	ClassOffice    Class = "office"
-	ClassVehicle   Class = "vehicle"
+	ClassHOUSE     Class = "HOUSE"
+	ClassAPARTMENT Class = "APARTMENT"
+	ClassPREMISES  Class = "PREMISES"
+	ClassOFFICE    Class = "OFFICE"
+	ClassVEHICLE   Class = "VEHICLE"
 )
 
 func (c Class) String() string {
@@ -88,7 +89,7 @@ func (c Class) String() string {
 // ClassValidator is a validator for the "class" field enum values. It is called by the builders before save.
 func ClassValidator(c Class) error {
 	switch c {
-	case ClassHouse, ClassApartment, ClassPremises, ClassOffice, ClassVehicle:
+	case ClassHOUSE, ClassAPARTMENT, ClassPREMISES, ClassOFFICE, ClassVEHICLE:
 		return nil
 	default:
 		return fmt.Errorf("property: invalid enum value for class field: %q", c)

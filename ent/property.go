@@ -18,8 +18,12 @@ type Property struct {
 	ID int `json:"id,omitempty"`
 	// Class holds the value of the "class" field.
 	Class property.Class `json:"class,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
+	// Address holds the value of the "address" field.
+	Address string `json:"address,omitempty"`
+	// City holds the value of the "city" field.
+	City string `json:"city,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
 	// Deleted holds the value of the "deleted" field.
 	Deleted bool `json:"deleted,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -60,7 +64,7 @@ func (*Property) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullBool)
 		case property.FieldID:
 			values[i] = new(sql.NullInt64)
-		case property.FieldClass, property.FieldName:
+		case property.FieldClass, property.FieldAddress, property.FieldCity, property.FieldDescription:
 			values[i] = new(sql.NullString)
 		case property.ForeignKeys[0]: // user_properties
 			values[i] = new(sql.NullInt64)
@@ -91,11 +95,23 @@ func (pr *Property) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				pr.Class = property.Class(value.String)
 			}
-		case property.FieldName:
+		case property.FieldAddress:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
+				return fmt.Errorf("unexpected type %T for field address", values[i])
 			} else if value.Valid {
-				pr.Name = value.String
+				pr.Address = value.String
+			}
+		case property.FieldCity:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field city", values[i])
+			} else if value.Valid {
+				pr.City = value.String
+			}
+		case property.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				pr.Description = value.String
 			}
 		case property.FieldDeleted:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -145,8 +161,12 @@ func (pr *Property) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", pr.ID))
 	builder.WriteString(", class=")
 	builder.WriteString(fmt.Sprintf("%v", pr.Class))
-	builder.WriteString(", name=")
-	builder.WriteString(pr.Name)
+	builder.WriteString(", address=")
+	builder.WriteString(pr.Address)
+	builder.WriteString(", city=")
+	builder.WriteString(pr.City)
+	builder.WriteString(", description=")
+	builder.WriteString(pr.Description)
 	builder.WriteString(", deleted=")
 	builder.WriteString(fmt.Sprintf("%v", pr.Deleted))
 	builder.WriteByte(')')

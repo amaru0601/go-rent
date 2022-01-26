@@ -41,9 +41,21 @@ func (pu *PropertyUpdate) SetNillableClass(pr *property.Class) *PropertyUpdate {
 	return pu
 }
 
-// SetName sets the "name" field.
-func (pu *PropertyUpdate) SetName(s string) *PropertyUpdate {
-	pu.mutation.SetName(s)
+// SetAddress sets the "address" field.
+func (pu *PropertyUpdate) SetAddress(s string) *PropertyUpdate {
+	pu.mutation.SetAddress(s)
+	return pu
+}
+
+// SetCity sets the "city" field.
+func (pu *PropertyUpdate) SetCity(s string) *PropertyUpdate {
+	pu.mutation.SetCity(s)
+	return pu
+}
+
+// SetDescription sets the "description" field.
+func (pu *PropertyUpdate) SetDescription(s string) *PropertyUpdate {
+	pu.mutation.SetDescription(s)
 	return pu
 }
 
@@ -150,11 +162,6 @@ func (pu *PropertyUpdate) check() error {
 			return &ValidationError{Name: "class", err: fmt.Errorf("ent: validator failed for field \"class\": %w", err)}
 		}
 	}
-	if v, ok := pu.mutation.Name(); ok {
-		if err := property.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
-		}
-	}
 	return nil
 }
 
@@ -183,11 +190,25 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: property.FieldClass,
 		})
 	}
-	if value, ok := pu.mutation.Name(); ok {
+	if value, ok := pu.mutation.Address(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: property.FieldName,
+			Column: property.FieldAddress,
+		})
+	}
+	if value, ok := pu.mutation.City(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: property.FieldCity,
+		})
+	}
+	if value, ok := pu.mutation.Description(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: property.FieldDescription,
 		})
 	}
 	if value, ok := pu.mutation.Deleted(); ok {
@@ -265,9 +286,21 @@ func (puo *PropertyUpdateOne) SetNillableClass(pr *property.Class) *PropertyUpda
 	return puo
 }
 
-// SetName sets the "name" field.
-func (puo *PropertyUpdateOne) SetName(s string) *PropertyUpdateOne {
-	puo.mutation.SetName(s)
+// SetAddress sets the "address" field.
+func (puo *PropertyUpdateOne) SetAddress(s string) *PropertyUpdateOne {
+	puo.mutation.SetAddress(s)
+	return puo
+}
+
+// SetCity sets the "city" field.
+func (puo *PropertyUpdateOne) SetCity(s string) *PropertyUpdateOne {
+	puo.mutation.SetCity(s)
+	return puo
+}
+
+// SetDescription sets the "description" field.
+func (puo *PropertyUpdateOne) SetDescription(s string) *PropertyUpdateOne {
+	puo.mutation.SetDescription(s)
 	return puo
 }
 
@@ -381,11 +414,6 @@ func (puo *PropertyUpdateOne) check() error {
 			return &ValidationError{Name: "class", err: fmt.Errorf("ent: validator failed for field \"class\": %w", err)}
 		}
 	}
-	if v, ok := puo.mutation.Name(); ok {
-		if err := property.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
-		}
-	}
 	return nil
 }
 
@@ -431,11 +459,25 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (_node *Property, err
 			Column: property.FieldClass,
 		})
 	}
-	if value, ok := puo.mutation.Name(); ok {
+	if value, ok := puo.mutation.Address(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: property.FieldName,
+			Column: property.FieldAddress,
+		})
+	}
+	if value, ok := puo.mutation.City(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: property.FieldCity,
+		})
+	}
+	if value, ok := puo.mutation.Description(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: property.FieldDescription,
 		})
 	}
 	if value, ok := puo.mutation.Deleted(); ok {
