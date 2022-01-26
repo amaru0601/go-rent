@@ -18,7 +18,6 @@ require (
 
 require (
 	github.com/agnivade/levenshtein v1.1.0 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/graphql-go/graphql v0.7.10-0.20210411022516-8a92e977c10b // indirect
@@ -28,8 +27,6 @@ require (
 	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/urfave/cli/v2 v2.3.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
