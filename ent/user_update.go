@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/amaru0601/go-rent/ent/contract"
 	"github.com/amaru0601/go-rent/ent/predicate"
 	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
@@ -79,6 +80,21 @@ func (uu *UserUpdate) AddProperties(p ...*Property) *UserUpdate {
 	return uu.AddPropertyIDs(ids...)
 }
 
+// AddContractIDs adds the "contracts" edge to the Contract entity by IDs.
+func (uu *UserUpdate) AddContractIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddContractIDs(ids...)
+	return uu
+}
+
+// AddContracts adds the "contracts" edges to the Contract entity.
+func (uu *UserUpdate) AddContracts(c ...*Contract) *UserUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.AddContractIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -103,6 +119,27 @@ func (uu *UserUpdate) RemoveProperties(p ...*Property) *UserUpdate {
 		ids[i] = p[i].ID
 	}
 	return uu.RemovePropertyIDs(ids...)
+}
+
+// ClearContracts clears all "contracts" edges to the Contract entity.
+func (uu *UserUpdate) ClearContracts() *UserUpdate {
+	uu.mutation.ClearContracts()
+	return uu
+}
+
+// RemoveContractIDs removes the "contracts" edge to Contract entities by IDs.
+func (uu *UserUpdate) RemoveContractIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveContractIDs(ids...)
+	return uu
+}
+
+// RemoveContracts removes "contracts" edges to Contract entities.
+func (uu *UserUpdate) RemoveContracts(c ...*Contract) *UserUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.RemoveContractIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -299,6 +336,60 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.ContractsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.ContractsTable,
+			Columns: user.ContractsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedContractsIDs(); len(nodes) > 0 && !uu.mutation.ContractsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.ContractsTable,
+			Columns: user.ContractsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.ContractsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.ContractsTable,
+			Columns: user.ContractsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -369,6 +460,21 @@ func (uuo *UserUpdateOne) AddProperties(p ...*Property) *UserUpdateOne {
 	return uuo.AddPropertyIDs(ids...)
 }
 
+// AddContractIDs adds the "contracts" edge to the Contract entity by IDs.
+func (uuo *UserUpdateOne) AddContractIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddContractIDs(ids...)
+	return uuo
+}
+
+// AddContracts adds the "contracts" edges to the Contract entity.
+func (uuo *UserUpdateOne) AddContracts(c ...*Contract) *UserUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.AddContractIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -393,6 +499,27 @@ func (uuo *UserUpdateOne) RemoveProperties(p ...*Property) *UserUpdateOne {
 		ids[i] = p[i].ID
 	}
 	return uuo.RemovePropertyIDs(ids...)
+}
+
+// ClearContracts clears all "contracts" edges to the Contract entity.
+func (uuo *UserUpdateOne) ClearContracts() *UserUpdateOne {
+	uuo.mutation.ClearContracts()
+	return uuo
+}
+
+// RemoveContractIDs removes the "contracts" edge to Contract entities by IDs.
+func (uuo *UserUpdateOne) RemoveContractIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveContractIDs(ids...)
+	return uuo
+}
+
+// RemoveContracts removes "contracts" edges to Contract entities.
+func (uuo *UserUpdateOne) RemoveContracts(c ...*Contract) *UserUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.RemoveContractIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -605,6 +732,60 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: property.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.ContractsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.ContractsTable,
+			Columns: user.ContractsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedContractsIDs(); len(nodes) > 0 && !uuo.mutation.ContractsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.ContractsTable,
+			Columns: user.ContractsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.ContractsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.ContractsTable,
+			Columns: user.ContractsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
 				},
 			},
 		}

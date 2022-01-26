@@ -21,6 +21,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// EdgeProperties holds the string denoting the properties edge name in mutations.
 	EdgeProperties = "properties"
+	// EdgeContracts holds the string denoting the contracts edge name in mutations.
+	EdgeContracts = "contracts"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// PropertiesTable is the table that holds the properties relation/edge.
@@ -30,6 +32,11 @@ const (
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
 	PropertiesColumn = "user_properties"
+	// ContractsTable is the table that holds the contracts relation/edge. The primary key declared below.
+	ContractsTable = "user_contracts"
+	// ContractsInverseTable is the table name for the Contract entity.
+	// It exists in this package in order to avoid circular dependency with the "contract" package.
+	ContractsInverseTable = "contracts"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -42,6 +49,12 @@ var Columns = []string{
 	FieldActivate,
 	FieldCreatedAt,
 }
+
+var (
+	// ContractsPrimaryKey and ContractsColumn2 are the table columns denoting the
+	// primary key for the contracts relation (M2M).
+	ContractsPrimaryKey = []string{"user_id", "contract_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

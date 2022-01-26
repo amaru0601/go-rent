@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/amaru0601/go-rent/ent/contract"
 	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 )
@@ -70,6 +71,21 @@ func (uc *UserCreate) AddProperties(p ...*Property) *UserCreate {
 		ids[i] = p[i].ID
 	}
 	return uc.AddPropertyIDs(ids...)
+}
+
+// AddContractIDs adds the "contracts" edge to the Contract entity by IDs.
+func (uc *UserCreate) AddContractIDs(ids ...int) *UserCreate {
+	uc.mutation.AddContractIDs(ids...)
+	return uc
+}
+
+// AddContracts adds the "contracts" edges to the Contract entity.
+func (uc *UserCreate) AddContracts(c ...*Contract) *UserCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uc.AddContractIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -261,6 +277,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: property.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.ContractsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.ContractsTable,
+			Columns: user.ContractsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
 				},
 			},
 		}

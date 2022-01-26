@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
+	"github.com/amaru0601/go-rent/ent/contract"
 	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -232,6 +233,233 @@ const (
 	pageInfoField   = "pageInfo"
 	totalCountField = "totalCount"
 )
+
+// ContractEdge is the edge representation of Contract.
+type ContractEdge struct {
+	Node   *Contract `json:"node"`
+	Cursor Cursor    `json:"cursor"`
+}
+
+// ContractConnection is the connection containing edges to Contract.
+type ContractConnection struct {
+	Edges      []*ContractEdge `json:"edges"`
+	PageInfo   PageInfo        `json:"pageInfo"`
+	TotalCount int             `json:"totalCount"`
+}
+
+// ContractPaginateOption enables pagination customization.
+type ContractPaginateOption func(*contractPager) error
+
+// WithContractOrder configures pagination ordering.
+func WithContractOrder(order *ContractOrder) ContractPaginateOption {
+	if order == nil {
+		order = DefaultContractOrder
+	}
+	o := *order
+	return func(pager *contractPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultContractOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithContractFilter configures pagination filter.
+func WithContractFilter(filter func(*ContractQuery) (*ContractQuery, error)) ContractPaginateOption {
+	return func(pager *contractPager) error {
+		if filter == nil {
+			return errors.New("ContractQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type contractPager struct {
+	order  *ContractOrder
+	filter func(*ContractQuery) (*ContractQuery, error)
+}
+
+func newContractPager(opts []ContractPaginateOption) (*contractPager, error) {
+	pager := &contractPager{}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultContractOrder
+	}
+	return pager, nil
+}
+
+func (p *contractPager) applyFilter(query *ContractQuery) (*ContractQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *contractPager) toCursor(c *Contract) Cursor {
+	return p.order.Field.toCursor(c)
+}
+
+func (p *contractPager) applyCursors(query *ContractQuery, after, before *Cursor) *ContractQuery {
+	for _, predicate := range cursorsToPredicates(
+		p.order.Direction, after, before,
+		p.order.Field.field, DefaultContractOrder.Field.field,
+	) {
+		query = query.Where(predicate)
+	}
+	return query
+}
+
+func (p *contractPager) applyOrder(query *ContractQuery, reverse bool) *ContractQuery {
+	direction := p.order.Direction
+	if reverse {
+		direction = direction.reverse()
+	}
+	query = query.Order(direction.orderFunc(p.order.Field.field))
+	if p.order.Field != DefaultContractOrder.Field {
+		query = query.Order(direction.orderFunc(DefaultContractOrder.Field.field))
+	}
+	return query
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Contract.
+func (c *ContractQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...ContractPaginateOption,
+) (*ContractConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newContractPager(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	if c, err = pager.applyFilter(c); err != nil {
+		return nil, err
+	}
+
+	conn := &ContractConnection{Edges: []*ContractEdge{}}
+	if !hasCollectedField(ctx, edgesField) || first != nil && *first == 0 || last != nil && *last == 0 {
+		if hasCollectedField(ctx, totalCountField) ||
+			hasCollectedField(ctx, pageInfoField) {
+			count, err := c.Count(ctx)
+			if err != nil {
+				return nil, err
+			}
+			conn.TotalCount = count
+			conn.PageInfo.HasNextPage = first != nil && count > 0
+			conn.PageInfo.HasPreviousPage = last != nil && count > 0
+		}
+		return conn, nil
+	}
+
+	if (after != nil || first != nil || before != nil || last != nil) && hasCollectedField(ctx, totalCountField) {
+		count, err := c.Clone().Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn.TotalCount = count
+	}
+
+	c = pager.applyCursors(c, after, before)
+	c = pager.applyOrder(c, last != nil)
+	var limit int
+	if first != nil {
+		limit = *first + 1
+	} else if last != nil {
+		limit = *last + 1
+	}
+	if limit > 0 {
+		c = c.Limit(limit)
+	}
+
+	if field := getCollectedField(ctx, edgesField, nodeField); field != nil {
+		c = c.collectField(graphql.GetOperationContext(ctx), *field)
+	}
+
+	nodes, err := c.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return conn, err
+	}
+
+	if len(nodes) == limit {
+		conn.PageInfo.HasNextPage = first != nil
+		conn.PageInfo.HasPreviousPage = last != nil
+		nodes = nodes[:len(nodes)-1]
+	}
+
+	var nodeAt func(int) *Contract
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Contract {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Contract {
+			return nodes[i]
+		}
+	}
+
+	conn.Edges = make([]*ContractEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		conn.Edges[i] = &ContractEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+	if conn.TotalCount == 0 {
+		conn.TotalCount = len(nodes)
+	}
+
+	return conn, nil
+}
+
+// ContractOrderField defines the ordering field of Contract.
+type ContractOrderField struct {
+	field    string
+	toCursor func(*Contract) Cursor
+}
+
+// ContractOrder defines the ordering of Contract.
+type ContractOrder struct {
+	Direction OrderDirection      `json:"direction"`
+	Field     *ContractOrderField `json:"field"`
+}
+
+// DefaultContractOrder is the default ordering of Contract.
+var DefaultContractOrder = &ContractOrder{
+	Direction: OrderDirectionAsc,
+	Field: &ContractOrderField{
+		field: contract.FieldID,
+		toCursor: func(c *Contract) Cursor {
+			return Cursor{ID: c.ID}
+		},
+	},
+}
+
+// ToEdge converts Contract into ContractEdge.
+func (c *Contract) ToEdge(order *ContractOrder) *ContractEdge {
+	if order == nil {
+		order = DefaultContractOrder
+	}
+	return &ContractEdge{
+		Node:   c,
+		Cursor: order.Field.toCursor(c),
+	}
+}
 
 // PropertyEdge is the edge representation of Property.
 type PropertyEdge struct {

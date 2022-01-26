@@ -37,9 +37,11 @@ type User struct {
 type UserEdges struct {
 	// Properties holds the value of the properties edge.
 	Properties []*Property `json:"properties,omitempty"`
+	// Contracts holds the value of the contracts edge.
+	Contracts []*Contract `json:"contracts,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // PropertiesOrErr returns the Properties value or an error if the edge
@@ -49,6 +51,15 @@ func (e UserEdges) PropertiesOrErr() ([]*Property, error) {
 		return e.Properties, nil
 	}
 	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// ContractsOrErr returns the Contracts value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ContractsOrErr() ([]*Contract, error) {
+	if e.loadedTypes[1] {
+		return e.Contracts, nil
+	}
+	return nil, &NotLoadedError{edge: "contracts"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -129,6 +140,11 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 // QueryProperties queries the "properties" edge of the User entity.
 func (u *User) QueryProperties() *PropertyQuery {
 	return (&UserClient{config: u.config}).QueryProperties(u)
+}
+
+// QueryContracts queries the "contracts" edge of the User entity.
+func (u *User) QueryContracts() *ContractQuery {
+	return (&UserClient{config: u.config}).QueryContracts(u)
 }
 
 // Update returns a builder for updating this User.

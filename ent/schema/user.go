@@ -27,7 +27,6 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("properties", Property.Type),
-		edge.From("contracts", Contract.Type).
-			Ref("users"),
+		edge.To("contracts", Contract.Type),
 	}
 }

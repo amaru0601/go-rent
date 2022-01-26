@@ -4,6 +4,14 @@ package ent
 
 import "context"
 
+func (c *Contract) Users(ctx context.Context) ([]*User, error) {
+	result, err := c.Edges.UsersOrErr()
+	if IsNotLoaded(err) {
+		result, err = c.QueryUsers().All(ctx)
+	}
+	return result, err
+}
+
 func (pr *Property) Owner(ctx context.Context) (*User, error) {
 	result, err := pr.Edges.OwnerOrErr()
 	if IsNotLoaded(err) {
@@ -16,6 +24,14 @@ func (u *User) Properties(ctx context.Context) ([]*Property, error) {
 	result, err := u.Edges.PropertiesOrErr()
 	if IsNotLoaded(err) {
 		result, err = u.QueryProperties().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) Contracts(ctx context.Context) ([]*Contract, error) {
+	result, err := u.Edges.ContractsOrErr()
+	if IsNotLoaded(err) {
+		result, err = u.QueryContracts().All(ctx)
 	}
 	return result, err
 }

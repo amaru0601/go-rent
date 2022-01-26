@@ -8,6 +8,20 @@ import (
 )
 
 var (
+	// ContractsColumns holds the columns for the "contracts" table.
+	ContractsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime},
+		{Name: "pay_amount", Type: field.TypeFloat32},
+		{Name: "pay_date", Type: field.TypeTime},
+	}
+	// ContractsTable holds the schema information for the "contracts" table.
+	ContractsTable = &schema.Table{
+		Name:       "contracts",
+		Columns:    ContractsColumns,
+		PrimaryKey: []*schema.Column{ContractsColumns[0]},
+	}
 	// PropertiesColumns holds the columns for the "properties" table.
 	PropertiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -48,13 +62,42 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// UserContractsColumns holds the columns for the "user_contracts" table.
+	UserContractsColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "contract_id", Type: field.TypeInt},
+	}
+	// UserContractsTable holds the schema information for the "user_contracts" table.
+	UserContractsTable = &schema.Table{
+		Name:       "user_contracts",
+		Columns:    UserContractsColumns,
+		PrimaryKey: []*schema.Column{UserContractsColumns[0], UserContractsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_contracts_user_id",
+				Columns:    []*schema.Column{UserContractsColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_contracts_contract_id",
+				Columns:    []*schema.Column{UserContractsColumns[1]},
+				RefColumns: []*schema.Column{ContractsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ContractsTable,
 		PropertiesTable,
 		UsersTable,
+		UserContractsTable,
 	}
 )
 
 func init() {
 	PropertiesTable.ForeignKeys[0].RefTable = UsersTable
+	UserContractsTable.ForeignKeys[0].RefTable = UsersTable
+	UserContractsTable.ForeignKeys[1].RefTable = ContractsTable
 }

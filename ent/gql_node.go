@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/schema"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/amaru0601/go-rent/ent/contract"
 	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 	"github.com/hashicorp/go-multierror"
@@ -45,6 +46,59 @@ type Edge struct {
 	Type string `json:"type,omitempty"` // edge type.
 	Name string `json:"name,omitempty"` // edge name.
 	IDs  []int  `json:"ids,omitempty"`  // node ids (where this edge point to).
+}
+
+func (c *Contract) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     c.ID,
+		Type:   "Contract",
+		Fields: make([]*Field, 4),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(c.StartDate); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "start_date",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.EndDate); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "end_date",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.PayAmount); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "float32",
+		Name:  "pay_amount",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(c.PayDate); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "time.Time",
+		Name:  "pay_date",
+		Value: string(buf),
+	}
+	node.Edges[0] = &Edge{
+		Type: "User",
+		Name: "users",
+	}
+	err = c.QueryUsers().
+		Select(user.FieldID).
+		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
 }
 
 func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
@@ -113,7 +167,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		ID:     u.ID,
 		Type:   "User",
 		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(u.Names); err != nil {
@@ -171,6 +225,16 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 	err = u.QueryProperties().
 		Select(property.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Contract",
+		Name: "contracts",
+	}
+	err = u.QueryContracts().
+		Select(contract.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}
@@ -244,6 +308,15 @@ func (c *Client) Noder(ctx context.Context, id int, opts ...NodeOption) (_ Noder
 
 func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error) {
 	switch table {
+	case contract.Table:
+		n, err := c.Contract.Query().
+			Where(contract.ID(id)).
+			CollectFields(ctx, "Contract").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case property.Table:
 		n, err := c.Property.Query().
 			Where(property.ID(id)).
@@ -335,6 +408,19 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
+	case contract.Table:
+		nodes, err := c.Contract.Query().
+			Where(contract.IDIn(ids...)).
+			CollectFields(ctx, "Contract").
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case property.Table:
 		nodes, err := c.Property.Query().
 			Where(property.IDIn(ids...)).
