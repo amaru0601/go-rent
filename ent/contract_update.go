@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/amaru0601/go-rent/ent/contract"
 	"github.com/amaru0601/go-rent/ent/predicate"
+	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 )
 
@@ -74,6 +76,17 @@ func (cu *ContractUpdate) AddUsers(u ...*User) *ContractUpdate {
 	return cu.AddUserIDs(ids...)
 }
 
+// SetRentID sets the "rent" edge to the Property entity by ID.
+func (cu *ContractUpdate) SetRentID(id int) *ContractUpdate {
+	cu.mutation.SetRentID(id)
+	return cu
+}
+
+// SetRent sets the "rent" edge to the Property entity.
+func (cu *ContractUpdate) SetRent(p *Property) *ContractUpdate {
+	return cu.SetRentID(p.ID)
+}
+
 // Mutation returns the ContractMutation object of the builder.
 func (cu *ContractUpdate) Mutation() *ContractMutation {
 	return cu.mutation
@@ -100,6 +113,12 @@ func (cu *ContractUpdate) RemoveUsers(u ...*User) *ContractUpdate {
 	return cu.RemoveUserIDs(ids...)
 }
 
+// ClearRent clears the "rent" edge to the Property entity.
+func (cu *ContractUpdate) ClearRent() *ContractUpdate {
+	cu.mutation.ClearRent()
+	return cu
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (cu *ContractUpdate) Save(ctx context.Context) (int, error) {
 	var (
@@ -107,12 +126,18 @@ func (cu *ContractUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(cu.hooks) == 0 {
+		if err = cu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = cu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*ContractMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = cu.check(); err != nil {
+				return 0, err
 			}
 			cu.mutation = mutation
 			affected, err = cu.sqlSave(ctx)
@@ -152,6 +177,14 @@ func (cu *ContractUpdate) ExecX(ctx context.Context) {
 	if err := cu.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (cu *ContractUpdate) check() error {
+	if _, ok := cu.mutation.RentID(); cu.mutation.RentCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"rent\"")
+	}
+	return nil
 }
 
 func (cu *ContractUpdate) sqlSave(ctx context.Context) (n int, err error) {
@@ -261,6 +294,41 @@ func (cu *ContractUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cu.mutation.RentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   contract.RentTable,
+			Columns: []string{contract.RentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: property.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   contract.RentTable,
+			Columns: []string{contract.RentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{contract.Label}
@@ -326,6 +394,17 @@ func (cuo *ContractUpdateOne) AddUsers(u ...*User) *ContractUpdateOne {
 	return cuo.AddUserIDs(ids...)
 }
 
+// SetRentID sets the "rent" edge to the Property entity by ID.
+func (cuo *ContractUpdateOne) SetRentID(id int) *ContractUpdateOne {
+	cuo.mutation.SetRentID(id)
+	return cuo
+}
+
+// SetRent sets the "rent" edge to the Property entity.
+func (cuo *ContractUpdateOne) SetRent(p *Property) *ContractUpdateOne {
+	return cuo.SetRentID(p.ID)
+}
+
 // Mutation returns the ContractMutation object of the builder.
 func (cuo *ContractUpdateOne) Mutation() *ContractMutation {
 	return cuo.mutation
@@ -352,6 +431,12 @@ func (cuo *ContractUpdateOne) RemoveUsers(u ...*User) *ContractUpdateOne {
 	return cuo.RemoveUserIDs(ids...)
 }
 
+// ClearRent clears the "rent" edge to the Property entity.
+func (cuo *ContractUpdateOne) ClearRent() *ContractUpdateOne {
+	cuo.mutation.ClearRent()
+	return cuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (cuo *ContractUpdateOne) Select(field string, fields ...string) *ContractUpdateOne {
@@ -366,12 +451,18 @@ func (cuo *ContractUpdateOne) Save(ctx context.Context) (*Contract, error) {
 		node *Contract
 	)
 	if len(cuo.hooks) == 0 {
+		if err = cuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = cuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*ContractMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = cuo.check(); err != nil {
+				return nil, err
 			}
 			cuo.mutation = mutation
 			node, err = cuo.sqlSave(ctx)
@@ -411,6 +502,14 @@ func (cuo *ContractUpdateOne) ExecX(ctx context.Context) {
 	if err := cuo.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (cuo *ContractUpdateOne) check() error {
+	if _, ok := cuo.mutation.RentID(); cuo.mutation.RentCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"rent\"")
+	}
+	return nil
 }
 
 func (cuo *ContractUpdateOne) sqlSave(ctx context.Context) (_node *Contract, err error) {
@@ -529,6 +628,41 @@ func (cuo *ContractUpdateOne) sqlSave(ctx context.Context) (_node *Contract, err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.RentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   contract.RentTable,
+			Columns: []string{contract.RentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: property.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   contract.RentTable,
+			Columns: []string{contract.RentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: property.FieldID,
 				},
 			},
 		}

@@ -25,6 +25,8 @@ const (
 	FieldDeleted = "deleted"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
+	// EdgeContract holds the string denoting the contract edge name in mutations.
+	EdgeContract = "contract"
 	// Table holds the table name of the property in the database.
 	Table = "properties"
 	// OwnerTable is the table that holds the owner relation/edge.
@@ -34,6 +36,13 @@ const (
 	OwnerInverseTable = "users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
 	OwnerColumn = "user_properties"
+	// ContractTable is the table that holds the contract relation/edge.
+	ContractTable = "contracts"
+	// ContractInverseTable is the table name for the Contract entity.
+	// It exists in this package in order to avoid circular dependency with the "contract" package.
+	ContractInverseTable = "contracts"
+	// ContractColumn is the table column denoting the contract relation/edge.
+	ContractColumn = "property_contract"
 )
 
 // Columns holds all SQL columns for property fields.

@@ -45,6 +45,8 @@ type ContractMutation struct {
 	users         map[int]struct{}
 	removedusers  map[int]struct{}
 	clearedusers  bool
+	rent          *int
+	clearedrent   bool
 	done          bool
 	oldValue      func(context.Context) (*Contract, error)
 	predicates    []predicate.Contract
@@ -347,6 +349,45 @@ func (m *ContractMutation) ResetUsers() {
 	m.removedusers = nil
 }
 
+// SetRentID sets the "rent" edge to the Property entity by id.
+func (m *ContractMutation) SetRentID(id int) {
+	m.rent = &id
+}
+
+// ClearRent clears the "rent" edge to the Property entity.
+func (m *ContractMutation) ClearRent() {
+	m.clearedrent = true
+}
+
+// RentCleared reports if the "rent" edge to the Property entity was cleared.
+func (m *ContractMutation) RentCleared() bool {
+	return m.clearedrent
+}
+
+// RentID returns the "rent" edge ID in the mutation.
+func (m *ContractMutation) RentID() (id int, exists bool) {
+	if m.rent != nil {
+		return *m.rent, true
+	}
+	return
+}
+
+// RentIDs returns the "rent" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RentID instead. It exists only for internal usage by the builders.
+func (m *ContractMutation) RentIDs() (ids []int) {
+	if id := m.rent; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRent resets all changes to the "rent" edge.
+func (m *ContractMutation) ResetRent() {
+	m.rent = nil
+	m.clearedrent = false
+}
+
 // Where appends a list predicates to the ContractMutation builder.
 func (m *ContractMutation) Where(ps ...predicate.Contract) {
 	m.predicates = append(m.predicates, ps...)
@@ -531,9 +572,12 @@ func (m *ContractMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ContractMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.users != nil {
 		edges = append(edges, contract.EdgeUsers)
+	}
+	if m.rent != nil {
+		edges = append(edges, contract.EdgeRent)
 	}
 	return edges
 }
@@ -548,13 +592,17 @@ func (m *ContractMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case contract.EdgeRent:
+		if id := m.rent; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ContractMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedusers != nil {
 		edges = append(edges, contract.EdgeUsers)
 	}
@@ -577,9 +625,12 @@ func (m *ContractMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ContractMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedusers {
 		edges = append(edges, contract.EdgeUsers)
+	}
+	if m.clearedrent {
+		edges = append(edges, contract.EdgeRent)
 	}
 	return edges
 }
@@ -590,6 +641,8 @@ func (m *ContractMutation) EdgeCleared(name string) bool {
 	switch name {
 	case contract.EdgeUsers:
 		return m.clearedusers
+	case contract.EdgeRent:
+		return m.clearedrent
 	}
 	return false
 }
@@ -598,6 +651,9 @@ func (m *ContractMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *ContractMutation) ClearEdge(name string) error {
 	switch name {
+	case contract.EdgeRent:
+		m.ClearRent()
+		return nil
 	}
 	return fmt.Errorf("unknown Contract unique edge %s", name)
 }
@@ -609,6 +665,9 @@ func (m *ContractMutation) ResetEdge(name string) error {
 	case contract.EdgeUsers:
 		m.ResetUsers()
 		return nil
+	case contract.EdgeRent:
+		m.ResetRent()
+		return nil
 	}
 	return fmt.Errorf("unknown Contract edge %s", name)
 }
@@ -616,20 +675,22 @@ func (m *ContractMutation) ResetEdge(name string) error {
 // PropertyMutation represents an operation that mutates the Property nodes in the graph.
 type PropertyMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	class         *property.Class
-	address       *string
-	city          *string
-	description   *string
-	deleted       *bool
-	clearedFields map[string]struct{}
-	owner         *int
-	clearedowner  bool
-	done          bool
-	oldValue      func(context.Context) (*Property, error)
-	predicates    []predicate.Property
+	op              Op
+	typ             string
+	id              *int
+	class           *property.Class
+	address         *string
+	city            *string
+	description     *string
+	deleted         *bool
+	clearedFields   map[string]struct{}
+	owner           *int
+	clearedowner    bool
+	contract        *int
+	clearedcontract bool
+	done            bool
+	oldValue        func(context.Context) (*Property, error)
+	predicates      []predicate.Property
 }
 
 var _ ent.Mutation = (*PropertyMutation)(nil)
@@ -930,6 +991,45 @@ func (m *PropertyMutation) ResetOwner() {
 	m.clearedowner = false
 }
 
+// SetContractID sets the "contract" edge to the Contract entity by id.
+func (m *PropertyMutation) SetContractID(id int) {
+	m.contract = &id
+}
+
+// ClearContract clears the "contract" edge to the Contract entity.
+func (m *PropertyMutation) ClearContract() {
+	m.clearedcontract = true
+}
+
+// ContractCleared reports if the "contract" edge to the Contract entity was cleared.
+func (m *PropertyMutation) ContractCleared() bool {
+	return m.clearedcontract
+}
+
+// ContractID returns the "contract" edge ID in the mutation.
+func (m *PropertyMutation) ContractID() (id int, exists bool) {
+	if m.contract != nil {
+		return *m.contract, true
+	}
+	return
+}
+
+// ContractIDs returns the "contract" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ContractID instead. It exists only for internal usage by the builders.
+func (m *PropertyMutation) ContractIDs() (ids []int) {
+	if id := m.contract; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetContract resets all changes to the "contract" edge.
+func (m *PropertyMutation) ResetContract() {
+	m.contract = nil
+	m.clearedcontract = false
+}
+
 // Where appends a list predicates to the PropertyMutation builder.
 func (m *PropertyMutation) Where(ps ...predicate.Property) {
 	m.predicates = append(m.predicates, ps...)
@@ -1116,9 +1216,12 @@ func (m *PropertyMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PropertyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.owner != nil {
 		edges = append(edges, property.EdgeOwner)
+	}
+	if m.contract != nil {
+		edges = append(edges, property.EdgeContract)
 	}
 	return edges
 }
@@ -1131,13 +1234,17 @@ func (m *PropertyMutation) AddedIDs(name string) []ent.Value {
 		if id := m.owner; id != nil {
 			return []ent.Value{*id}
 		}
+	case property.EdgeContract:
+		if id := m.contract; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PropertyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -1151,9 +1258,12 @@ func (m *PropertyMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PropertyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedowner {
 		edges = append(edges, property.EdgeOwner)
+	}
+	if m.clearedcontract {
+		edges = append(edges, property.EdgeContract)
 	}
 	return edges
 }
@@ -1164,6 +1274,8 @@ func (m *PropertyMutation) EdgeCleared(name string) bool {
 	switch name {
 	case property.EdgeOwner:
 		return m.clearedowner
+	case property.EdgeContract:
+		return m.clearedcontract
 	}
 	return false
 }
@@ -1175,6 +1287,9 @@ func (m *PropertyMutation) ClearEdge(name string) error {
 	case property.EdgeOwner:
 		m.ClearOwner()
 		return nil
+	case property.EdgeContract:
+		m.ClearContract()
+		return nil
 	}
 	return fmt.Errorf("unknown Property unique edge %s", name)
 }
@@ -1185,6 +1300,9 @@ func (m *PropertyMutation) ResetEdge(name string) error {
 	switch name {
 	case property.EdgeOwner:
 		m.ResetOwner()
+		return nil
+	case property.EdgeContract:
+		m.ResetContract()
 		return nil
 	}
 	return fmt.Errorf("unknown Property edge %s", name)

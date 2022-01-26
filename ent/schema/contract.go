@@ -26,5 +26,6 @@ func (Contract) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("users", User.Type).
 			Ref("contracts"),
+		edge.From("rent", Property.Type).Ref("contract").Unique().Required(),
 	}
 }

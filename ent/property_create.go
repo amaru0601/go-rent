@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/amaru0601/go-rent/ent/contract"
 	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 )
@@ -75,6 +76,25 @@ func (pc *PropertyCreate) SetNillableOwnerID(id *int) *PropertyCreate {
 // SetOwner sets the "owner" edge to the User entity.
 func (pc *PropertyCreate) SetOwner(u *User) *PropertyCreate {
 	return pc.SetOwnerID(u.ID)
+}
+
+// SetContractID sets the "contract" edge to the Contract entity by ID.
+func (pc *PropertyCreate) SetContractID(id int) *PropertyCreate {
+	pc.mutation.SetContractID(id)
+	return pc
+}
+
+// SetNillableContractID sets the "contract" edge to the Contract entity by ID if the given value is not nil.
+func (pc *PropertyCreate) SetNillableContractID(id *int) *PropertyCreate {
+	if id != nil {
+		pc = pc.SetContractID(*id)
+	}
+	return pc
+}
+
+// SetContract sets the "contract" edge to the Contract entity.
+func (pc *PropertyCreate) SetContract(c *Contract) *PropertyCreate {
+	return pc.SetContractID(c.ID)
 }
 
 // Mutation returns the PropertyMutation object of the builder.
@@ -261,6 +281,25 @@ func (pc *PropertyCreate) createSpec() (*Property, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.user_properties = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.ContractIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   property.ContractTable,
+			Columns: []string{property.ContractColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

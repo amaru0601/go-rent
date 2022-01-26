@@ -12,10 +12,26 @@ func (c *Contract) Users(ctx context.Context) ([]*User, error) {
 	return result, err
 }
 
+func (c *Contract) Rent(ctx context.Context) (*Property, error) {
+	result, err := c.Edges.RentOrErr()
+	if IsNotLoaded(err) {
+		result, err = c.QueryRent().Only(ctx)
+	}
+	return result, err
+}
+
 func (pr *Property) Owner(ctx context.Context) (*User, error) {
 	result, err := pr.Edges.OwnerOrErr()
 	if IsNotLoaded(err) {
 		result, err = pr.QueryOwner().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (pr *Property) Contract(ctx context.Context) (*Contract, error) {
+	result, err := pr.Edges.ContractOrErr()
+	if IsNotLoaded(err) {
+		result, err = pr.QueryContract().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }

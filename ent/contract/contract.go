@@ -17,6 +17,8 @@ const (
 	FieldPayDate = "pay_date"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
+	// EdgeRent holds the string denoting the rent edge name in mutations.
+	EdgeRent = "rent"
 	// Table holds the table name of the contract in the database.
 	Table = "contracts"
 	// UsersTable is the table that holds the users relation/edge. The primary key declared below.
@@ -24,6 +26,13 @@ const (
 	// UsersInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UsersInverseTable = "users"
+	// RentTable is the table that holds the rent relation/edge.
+	RentTable = "contracts"
+	// RentInverseTable is the table name for the Property entity.
+	// It exists in this package in order to avoid circular dependency with the "property" package.
+	RentInverseTable = "properties"
+	// RentColumn is the table column denoting the rent relation/edge.
+	RentColumn = "property_contract"
 )
 
 // Columns holds all SQL columns for contract fields.
@@ -33,6 +42,12 @@ var Columns = []string{
 	FieldEndDate,
 	FieldPayAmount,
 	FieldPayDate,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "contracts"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"property_contract",
 }
 
 var (
@@ -45,6 +60,11 @@ var (
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

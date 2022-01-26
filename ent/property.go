@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/amaru0601/go-rent/ent/contract"
 	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 )
@@ -36,9 +37,11 @@ type Property struct {
 type PropertyEdges struct {
 	// Owner holds the value of the owner edge.
 	Owner *User `json:"owner,omitempty"`
+	// Contract holds the value of the contract edge.
+	Contract *Contract `json:"contract,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -53,6 +56,20 @@ func (e PropertyEdges) OwnerOrErr() (*User, error) {
 		return e.Owner, nil
 	}
 	return nil, &NotLoadedError{edge: "owner"}
+}
+
+// ContractOrErr returns the Contract value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyEdges) ContractOrErr() (*Contract, error) {
+	if e.loadedTypes[1] {
+		if e.Contract == nil {
+			// The edge contract was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: contract.Label}
+		}
+		return e.Contract, nil
+	}
+	return nil, &NotLoadedError{edge: "contract"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -134,6 +151,11 @@ func (pr *Property) assignValues(columns []string, values []interface{}) error {
 // QueryOwner queries the "owner" edge of the Property entity.
 func (pr *Property) QueryOwner() *UserQuery {
 	return (&PropertyClient{config: pr.config}).QueryOwner(pr)
+}
+
+// QueryContract queries the "contract" edge of the Property entity.
+func (pr *Property) QueryContract() *ContractQuery {
+	return (&PropertyClient{config: pr.config}).QueryContract(pr)
 }
 
 // Update returns a builder for updating this Property.

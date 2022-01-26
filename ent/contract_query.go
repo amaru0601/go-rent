@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/amaru0601/go-rent/ent/contract"
 	"github.com/amaru0601/go-rent/ent/predicate"
+	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 )
 
@@ -28,6 +29,8 @@ type ContractQuery struct {
 	predicates []predicate.Contract
 	// eager-loading edges.
 	withUsers *UserQuery
+	withRent  *PropertyQuery
+	withFKs   bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -79,6 +82,28 @@ func (cq *ContractQuery) QueryUsers() *UserQuery {
 			sqlgraph.From(contract.Table, contract.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, contract.UsersTable, contract.UsersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRent chains the current query on the "rent" edge.
+func (cq *ContractQuery) QueryRent() *PropertyQuery {
+	query := &PropertyQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(contract.Table, contract.FieldID, selector),
+			sqlgraph.To(property.Table, property.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, contract.RentTable, contract.RentColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -268,6 +293,7 @@ func (cq *ContractQuery) Clone() *ContractQuery {
 		order:      append([]OrderFunc{}, cq.order...),
 		predicates: append([]predicate.Contract{}, cq.predicates...),
 		withUsers:  cq.withUsers.Clone(),
+		withRent:   cq.withRent.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
@@ -282,6 +308,17 @@ func (cq *ContractQuery) WithUsers(opts ...func(*UserQuery)) *ContractQuery {
 		opt(query)
 	}
 	cq.withUsers = query
+	return cq
+}
+
+// WithRent tells the query-builder to eager-load the nodes that are connected to
+// the "rent" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ContractQuery) WithRent(opts ...func(*PropertyQuery)) *ContractQuery {
+	query := &PropertyQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withRent = query
 	return cq
 }
 
@@ -349,11 +386,19 @@ func (cq *ContractQuery) prepareQuery(ctx context.Context) error {
 func (cq *ContractQuery) sqlAll(ctx context.Context) ([]*Contract, error) {
 	var (
 		nodes       = []*Contract{}
+		withFKs     = cq.withFKs
 		_spec       = cq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			cq.withUsers != nil,
+			cq.withRent != nil,
 		}
 	)
+	if cq.withRent != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, contract.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &Contract{config: cq.config}
 		nodes = append(nodes, node)
@@ -435,6 +480,35 @@ func (cq *ContractQuery) sqlAll(ctx context.Context) ([]*Contract, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.Users = append(nodes[i].Edges.Users, n)
+			}
+		}
+	}
+
+	if query := cq.withRent; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Contract)
+		for i := range nodes {
+			if nodes[i].property_contract == nil {
+				continue
+			}
+			fk := *nodes[i].property_contract
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(property.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "property_contract" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Rent = n
 			}
 		}
 	}

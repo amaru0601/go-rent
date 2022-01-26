@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/amaru0601/go-rent/ent/contract"
+	"github.com/amaru0601/go-rent/ent/property"
 )
 
 // Contract is the model entity for the Contract schema.
@@ -26,16 +27,19 @@ type Contract struct {
 	PayDate time.Time `json:"pay_date,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ContractQuery when eager-loading is set.
-	Edges ContractEdges `json:"edges"`
+	Edges             ContractEdges `json:"edges"`
+	property_contract *int
 }
 
 // ContractEdges holds the relations/edges for other nodes in the graph.
 type ContractEdges struct {
 	// Users holds the value of the users edge.
 	Users []*User `json:"users,omitempty"`
+	// Rent holds the value of the rent edge.
+	Rent *Property `json:"rent,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -45,6 +49,20 @@ func (e ContractEdges) UsersOrErr() ([]*User, error) {
 		return e.Users, nil
 	}
 	return nil, &NotLoadedError{edge: "users"}
+}
+
+// RentOrErr returns the Rent value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ContractEdges) RentOrErr() (*Property, error) {
+	if e.loadedTypes[1] {
+		if e.Rent == nil {
+			// The edge rent was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: property.Label}
+		}
+		return e.Rent, nil
+	}
+	return nil, &NotLoadedError{edge: "rent"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -58,6 +76,8 @@ func (*Contract) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case contract.FieldStartDate, contract.FieldEndDate, contract.FieldPayDate:
 			values[i] = new(sql.NullTime)
+		case contract.ForeignKeys[0]: // property_contract
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Contract", columns[i])
 		}
@@ -103,6 +123,13 @@ func (c *Contract) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				c.PayDate = value.Time
 			}
+		case contract.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field property_contract", value)
+			} else if value.Valid {
+				c.property_contract = new(int)
+				*c.property_contract = int(value.Int64)
+			}
 		}
 	}
 	return nil
@@ -111,6 +138,11 @@ func (c *Contract) assignValues(columns []string, values []interface{}) error {
 // QueryUsers queries the "users" edge of the Contract entity.
 func (c *Contract) QueryUsers() *UserQuery {
 	return (&ContractClient{config: c.config}).QueryUsers(c)
+}
+
+// QueryRent queries the "rent" edge of the Contract entity.
+func (c *Contract) QueryRent() *PropertyQuery {
+	return (&ContractClient{config: c.config}).QueryRent(c)
 }
 
 // Update returns a builder for updating this Contract.

@@ -53,7 +53,7 @@ func (c *Contract) Node(ctx context.Context) (node *Node, err error) {
 		ID:     c.ID,
 		Type:   "Contract",
 		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(c.StartDate); err != nil {
@@ -98,6 +98,16 @@ func (c *Contract) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
+	node.Edges[1] = &Edge{
+		Type: "Property",
+		Name: "rent",
+	}
+	err = c.QueryRent().
+		Select(property.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
+	if err != nil {
+		return nil, err
+	}
 	return node, nil
 }
 
@@ -106,7 +116,7 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 		ID:     pr.ID,
 		Type:   "Property",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(pr.Class); err != nil {
@@ -156,6 +166,16 @@ func (pr *Property) Node(ctx context.Context) (node *Node, err error) {
 	err = pr.QueryOwner().
 		Select(user.FieldID).
 		Scan(ctx, &node.Edges[0].IDs)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		Type: "Contract",
+		Name: "contract",
+	}
+	err = pr.QueryContract().
+		Select(contract.FieldID).
+		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {
 		return nil, err
 	}

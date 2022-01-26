@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/amaru0601/go-rent/ent/contract"
+	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 )
 
@@ -58,6 +59,17 @@ func (cc *ContractCreate) AddUsers(u ...*User) *ContractCreate {
 		ids[i] = u[i].ID
 	}
 	return cc.AddUserIDs(ids...)
+}
+
+// SetRentID sets the "rent" edge to the Property entity by ID.
+func (cc *ContractCreate) SetRentID(id int) *ContractCreate {
+	cc.mutation.SetRentID(id)
+	return cc
+}
+
+// SetRent sets the "rent" edge to the Property entity.
+func (cc *ContractCreate) SetRent(p *Property) *ContractCreate {
+	return cc.SetRentID(p.ID)
 }
 
 // Mutation returns the ContractMutation object of the builder.
@@ -142,6 +154,9 @@ func (cc *ContractCreate) check() error {
 	if _, ok := cc.mutation.PayDate(); !ok {
 		return &ValidationError{Name: "pay_date", err: errors.New(`ent: missing required field "pay_date"`)}
 	}
+	if _, ok := cc.mutation.RentID(); !ok {
+		return &ValidationError{Name: "rent", err: errors.New("ent: missing required edge \"rent\"")}
+	}
 	return nil
 }
 
@@ -218,6 +233,26 @@ func (cc *ContractCreate) createSpec() (*Contract, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.RentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   contract.RentTable,
+			Columns: []string{contract.RentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.property_contract = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -11,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/amaru0601/go-rent/ent/contract"
 	"github.com/amaru0601/go-rent/ent/predicate"
 	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
@@ -26,8 +28,9 @@ type PropertyQuery struct {
 	fields     []string
 	predicates []predicate.Property
 	// eager-loading edges.
-	withOwner *UserQuery
-	withFKs   bool
+	withOwner    *UserQuery
+	withContract *ContractQuery
+	withFKs      bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -79,6 +82,28 @@ func (pq *PropertyQuery) QueryOwner() *UserQuery {
 			sqlgraph.From(property.Table, property.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, property.OwnerTable, property.OwnerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryContract chains the current query on the "contract" edge.
+func (pq *PropertyQuery) QueryContract() *ContractQuery {
+	query := &ContractQuery{config: pq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, selector),
+			sqlgraph.To(contract.Table, contract.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, property.ContractTable, property.ContractColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -262,12 +287,13 @@ func (pq *PropertyQuery) Clone() *PropertyQuery {
 		return nil
 	}
 	return &PropertyQuery{
-		config:     pq.config,
-		limit:      pq.limit,
-		offset:     pq.offset,
-		order:      append([]OrderFunc{}, pq.order...),
-		predicates: append([]predicate.Property{}, pq.predicates...),
-		withOwner:  pq.withOwner.Clone(),
+		config:       pq.config,
+		limit:        pq.limit,
+		offset:       pq.offset,
+		order:        append([]OrderFunc{}, pq.order...),
+		predicates:   append([]predicate.Property{}, pq.predicates...),
+		withOwner:    pq.withOwner.Clone(),
+		withContract: pq.withContract.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -282,6 +308,17 @@ func (pq *PropertyQuery) WithOwner(opts ...func(*UserQuery)) *PropertyQuery {
 		opt(query)
 	}
 	pq.withOwner = query
+	return pq
+}
+
+// WithContract tells the query-builder to eager-load the nodes that are connected to
+// the "contract" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PropertyQuery) WithContract(opts ...func(*ContractQuery)) *PropertyQuery {
+	query := &ContractQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withContract = query
 	return pq
 }
 
@@ -351,8 +388,9 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 		nodes       = []*Property{}
 		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			pq.withOwner != nil,
+			pq.withContract != nil,
 		}
 	)
 	if pq.withOwner != nil {
@@ -407,6 +445,34 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 			for i := range nodes {
 				nodes[i].Edges.Owner = n
 			}
+		}
+	}
+
+	if query := pq.withContract; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Property)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Contract(func(s *sql.Selector) {
+			s.Where(sql.InValues(property.ContractColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.property_contract
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "property_contract" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "property_contract" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Contract = n
 		}
 	}
 

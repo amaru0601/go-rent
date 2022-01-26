@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/amaru0601/go-rent/ent/contract"
 	"github.com/amaru0601/go-rent/ent/predicate"
 	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
@@ -84,6 +85,25 @@ func (pu *PropertyUpdate) SetOwner(u *User) *PropertyUpdate {
 	return pu.SetOwnerID(u.ID)
 }
 
+// SetContractID sets the "contract" edge to the Contract entity by ID.
+func (pu *PropertyUpdate) SetContractID(id int) *PropertyUpdate {
+	pu.mutation.SetContractID(id)
+	return pu
+}
+
+// SetNillableContractID sets the "contract" edge to the Contract entity by ID if the given value is not nil.
+func (pu *PropertyUpdate) SetNillableContractID(id *int) *PropertyUpdate {
+	if id != nil {
+		pu = pu.SetContractID(*id)
+	}
+	return pu
+}
+
+// SetContract sets the "contract" edge to the Contract entity.
+func (pu *PropertyUpdate) SetContract(c *Contract) *PropertyUpdate {
+	return pu.SetContractID(c.ID)
+}
+
 // Mutation returns the PropertyMutation object of the builder.
 func (pu *PropertyUpdate) Mutation() *PropertyMutation {
 	return pu.mutation
@@ -92,6 +112,12 @@ func (pu *PropertyUpdate) Mutation() *PropertyMutation {
 // ClearOwner clears the "owner" edge to the User entity.
 func (pu *PropertyUpdate) ClearOwner() *PropertyUpdate {
 	pu.mutation.ClearOwner()
+	return pu
+}
+
+// ClearContract clears the "contract" edge to the Contract entity.
+func (pu *PropertyUpdate) ClearContract() *PropertyUpdate {
+	pu.mutation.ClearContract()
 	return pu
 }
 
@@ -253,6 +279,41 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.ContractCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   property.ContractTable,
+			Columns: []string{property.ContractColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.ContractIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   property.ContractTable,
+			Columns: []string{property.ContractColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{property.Label}
@@ -329,6 +390,25 @@ func (puo *PropertyUpdateOne) SetOwner(u *User) *PropertyUpdateOne {
 	return puo.SetOwnerID(u.ID)
 }
 
+// SetContractID sets the "contract" edge to the Contract entity by ID.
+func (puo *PropertyUpdateOne) SetContractID(id int) *PropertyUpdateOne {
+	puo.mutation.SetContractID(id)
+	return puo
+}
+
+// SetNillableContractID sets the "contract" edge to the Contract entity by ID if the given value is not nil.
+func (puo *PropertyUpdateOne) SetNillableContractID(id *int) *PropertyUpdateOne {
+	if id != nil {
+		puo = puo.SetContractID(*id)
+	}
+	return puo
+}
+
+// SetContract sets the "contract" edge to the Contract entity.
+func (puo *PropertyUpdateOne) SetContract(c *Contract) *PropertyUpdateOne {
+	return puo.SetContractID(c.ID)
+}
+
 // Mutation returns the PropertyMutation object of the builder.
 func (puo *PropertyUpdateOne) Mutation() *PropertyMutation {
 	return puo.mutation
@@ -337,6 +417,12 @@ func (puo *PropertyUpdateOne) Mutation() *PropertyMutation {
 // ClearOwner clears the "owner" edge to the User entity.
 func (puo *PropertyUpdateOne) ClearOwner() *PropertyUpdateOne {
 	puo.mutation.ClearOwner()
+	return puo
+}
+
+// ClearContract clears the "contract" edge to the Contract entity.
+func (puo *PropertyUpdateOne) ClearContract() *PropertyUpdateOne {
+	puo.mutation.ClearContract()
 	return puo
 }
 
@@ -514,6 +600,41 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (_node *Property, err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.ContractCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   property.ContractTable,
+			Columns: []string{property.ContractColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.ContractIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   property.ContractTable,
+			Columns: []string{property.ContractColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
 				},
 			},
 		}

@@ -15,12 +15,21 @@ var (
 		{Name: "end_date", Type: field.TypeTime},
 		{Name: "pay_amount", Type: field.TypeFloat32},
 		{Name: "pay_date", Type: field.TypeTime},
+		{Name: "property_contract", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// ContractsTable holds the schema information for the "contracts" table.
 	ContractsTable = &schema.Table{
 		Name:       "contracts",
 		Columns:    ContractsColumns,
 		PrimaryKey: []*schema.Column{ContractsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "contracts_properties_contract",
+				Columns:    []*schema.Column{ContractsColumns[5]},
+				RefColumns: []*schema.Column{PropertiesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// PropertiesColumns holds the columns for the "properties" table.
 	PropertiesColumns = []*schema.Column{
@@ -97,6 +106,7 @@ var (
 )
 
 func init() {
+	ContractsTable.ForeignKeys[0].RefTable = PropertiesTable
 	PropertiesTable.ForeignKeys[0].RefTable = UsersTable
 	UserContractsTable.ForeignKeys[0].RefTable = UsersTable
 	UserContractsTable.ForeignKeys[1].RefTable = ContractsTable
