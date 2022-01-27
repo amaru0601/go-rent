@@ -10,14 +10,6 @@ type User {
     birthday: Time
 }
 
-input UserInput {
-    birthday: Time
-    names: String!
-    lastnames: String!
-    activate: Boolean
-    email: String!
-}
-
 enum TypeProperty {
     HOUSE,
     APARTMENT,
@@ -35,17 +27,45 @@ type Property {
     city: String!
 }
 
+type Contract {
+    startDate: Time!
+    endDate: Time!
+    payAmount: Float!
+    payDate: Time!
+    tenant: User!
+    property: Property!
+}
+
 input PropertyInput {
     class: TypeProperty! = APARTMENT
-    owner: ID!
+    ownerID: ID!
     address: String!
     description: String!
     city: String!
 }
 
+input UserInput {
+    birthday: Time
+    names: String!
+    lastnames: String!
+    activate: Boolean
+    email: String!
+}
+
+input ContractInput {
+    ownerID: ID!
+    tenantID: ID!
+    startDate: Time!
+    endDate: Time!
+    payAmount: Float!
+    payDate: Time!
+    propertyID: ID!
+}
+
 type Mutation {
     createUser(user: UserInput!): User!
-    createProperty(property: PropertyInput!): Property
+    createProperty(property: PropertyInput!): Property!
+    createContract(contract: ContractInput!): Contract!
 }
 
 type Query {

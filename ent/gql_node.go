@@ -76,7 +76,7 @@ func (c *Contract) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
-		Type:  "float32",
+		Type:  "float64",
 		Name:  "pay_amount",
 		Value: string(buf),
 	}
@@ -100,9 +100,9 @@ func (c *Contract) Node(ctx context.Context) (node *Node, err error) {
 	}
 	node.Edges[1] = &Edge{
 		Type: "Property",
-		Name: "rent",
+		Name: "property",
 	}
-	err = c.QueryRent().
+	err = c.QueryProperty().
 		Select(property.FieldID).
 		Scan(ctx, &node.Edges[1].IDs)
 	if err != nil {

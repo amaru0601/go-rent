@@ -108,7 +108,7 @@ func EndDate(v time.Time) predicate.Contract {
 }
 
 // PayAmount applies equality check predicate on the "pay_amount" field. It's identical to PayAmountEQ.
-func PayAmount(v float32) predicate.Contract {
+func PayAmount(v float64) predicate.Contract {
 	return predicate.Contract(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldPayAmount), v))
 	})
@@ -274,21 +274,21 @@ func EndDateLTE(v time.Time) predicate.Contract {
 }
 
 // PayAmountEQ applies the EQ predicate on the "pay_amount" field.
-func PayAmountEQ(v float32) predicate.Contract {
+func PayAmountEQ(v float64) predicate.Contract {
 	return predicate.Contract(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldPayAmount), v))
 	})
 }
 
 // PayAmountNEQ applies the NEQ predicate on the "pay_amount" field.
-func PayAmountNEQ(v float32) predicate.Contract {
+func PayAmountNEQ(v float64) predicate.Contract {
 	return predicate.Contract(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldPayAmount), v))
 	})
 }
 
 // PayAmountIn applies the In predicate on the "pay_amount" field.
-func PayAmountIn(vs ...float32) predicate.Contract {
+func PayAmountIn(vs ...float64) predicate.Contract {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -305,7 +305,7 @@ func PayAmountIn(vs ...float32) predicate.Contract {
 }
 
 // PayAmountNotIn applies the NotIn predicate on the "pay_amount" field.
-func PayAmountNotIn(vs ...float32) predicate.Contract {
+func PayAmountNotIn(vs ...float64) predicate.Contract {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -322,28 +322,28 @@ func PayAmountNotIn(vs ...float32) predicate.Contract {
 }
 
 // PayAmountGT applies the GT predicate on the "pay_amount" field.
-func PayAmountGT(v float32) predicate.Contract {
+func PayAmountGT(v float64) predicate.Contract {
 	return predicate.Contract(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldPayAmount), v))
 	})
 }
 
 // PayAmountGTE applies the GTE predicate on the "pay_amount" field.
-func PayAmountGTE(v float32) predicate.Contract {
+func PayAmountGTE(v float64) predicate.Contract {
 	return predicate.Contract(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldPayAmount), v))
 	})
 }
 
 // PayAmountLT applies the LT predicate on the "pay_amount" field.
-func PayAmountLT(v float32) predicate.Contract {
+func PayAmountLT(v float64) predicate.Contract {
 	return predicate.Contract(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldPayAmount), v))
 	})
 }
 
 // PayAmountLTE applies the LTE predicate on the "pay_amount" field.
-func PayAmountLTE(v float32) predicate.Contract {
+func PayAmountLTE(v float64) predicate.Contract {
 	return predicate.Contract(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldPayAmount), v))
 	})
@@ -453,25 +453,25 @@ func HasUsersWith(preds ...predicate.User) predicate.Contract {
 	})
 }
 
-// HasRent applies the HasEdge predicate on the "rent" edge.
-func HasRent() predicate.Contract {
+// HasProperty applies the HasEdge predicate on the "property" edge.
+func HasProperty() predicate.Contract {
 	return predicate.Contract(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RentTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, RentTable, RentColumn),
+			sqlgraph.To(PropertyTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, PropertyTable, PropertyColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasRentWith applies the HasEdge predicate on the "rent" edge with a given conditions (other predicates).
-func HasRentWith(preds ...predicate.Property) predicate.Contract {
+// HasPropertyWith applies the HasEdge predicate on the "property" edge with a given conditions (other predicates).
+func HasPropertyWith(preds ...predicate.Property) predicate.Contract {
 	return predicate.Contract(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RentInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, RentTable, RentColumn),
+			sqlgraph.To(PropertyInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, PropertyTable, PropertyColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

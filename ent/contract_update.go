@@ -43,14 +43,14 @@ func (cu *ContractUpdate) SetEndDate(t time.Time) *ContractUpdate {
 }
 
 // SetPayAmount sets the "pay_amount" field.
-func (cu *ContractUpdate) SetPayAmount(f float32) *ContractUpdate {
+func (cu *ContractUpdate) SetPayAmount(f float64) *ContractUpdate {
 	cu.mutation.ResetPayAmount()
 	cu.mutation.SetPayAmount(f)
 	return cu
 }
 
 // AddPayAmount adds f to the "pay_amount" field.
-func (cu *ContractUpdate) AddPayAmount(f float32) *ContractUpdate {
+func (cu *ContractUpdate) AddPayAmount(f float64) *ContractUpdate {
 	cu.mutation.AddPayAmount(f)
 	return cu
 }
@@ -76,15 +76,15 @@ func (cu *ContractUpdate) AddUsers(u ...*User) *ContractUpdate {
 	return cu.AddUserIDs(ids...)
 }
 
-// SetRentID sets the "rent" edge to the Property entity by ID.
-func (cu *ContractUpdate) SetRentID(id int) *ContractUpdate {
-	cu.mutation.SetRentID(id)
+// SetPropertyID sets the "property" edge to the Property entity by ID.
+func (cu *ContractUpdate) SetPropertyID(id int) *ContractUpdate {
+	cu.mutation.SetPropertyID(id)
 	return cu
 }
 
-// SetRent sets the "rent" edge to the Property entity.
-func (cu *ContractUpdate) SetRent(p *Property) *ContractUpdate {
-	return cu.SetRentID(p.ID)
+// SetProperty sets the "property" edge to the Property entity.
+func (cu *ContractUpdate) SetProperty(p *Property) *ContractUpdate {
+	return cu.SetPropertyID(p.ID)
 }
 
 // Mutation returns the ContractMutation object of the builder.
@@ -113,9 +113,9 @@ func (cu *ContractUpdate) RemoveUsers(u ...*User) *ContractUpdate {
 	return cu.RemoveUserIDs(ids...)
 }
 
-// ClearRent clears the "rent" edge to the Property entity.
-func (cu *ContractUpdate) ClearRent() *ContractUpdate {
-	cu.mutation.ClearRent()
+// ClearProperty clears the "property" edge to the Property entity.
+func (cu *ContractUpdate) ClearProperty() *ContractUpdate {
+	cu.mutation.ClearProperty()
 	return cu
 }
 
@@ -181,8 +181,8 @@ func (cu *ContractUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (cu *ContractUpdate) check() error {
-	if _, ok := cu.mutation.RentID(); cu.mutation.RentCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"rent\"")
+	if _, ok := cu.mutation.PropertyID(); cu.mutation.PropertyCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"property\"")
 	}
 	return nil
 }
@@ -221,14 +221,14 @@ func (cu *ContractUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := cu.mutation.PayAmount(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
+			Type:   field.TypeFloat64,
 			Value:  value,
 			Column: contract.FieldPayAmount,
 		})
 	}
 	if value, ok := cu.mutation.AddedPayAmount(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
+			Type:   field.TypeFloat64,
 			Value:  value,
 			Column: contract.FieldPayAmount,
 		})
@@ -294,12 +294,12 @@ func (cu *ContractUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if cu.mutation.RentCleared() {
+	if cu.mutation.PropertyCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
-			Table:   contract.RentTable,
-			Columns: []string{contract.RentColumn},
+			Table:   contract.PropertyTable,
+			Columns: []string{contract.PropertyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -310,12 +310,12 @@ func (cu *ContractUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.mutation.RentIDs(); len(nodes) > 0 {
+	if nodes := cu.mutation.PropertyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
-			Table:   contract.RentTable,
-			Columns: []string{contract.RentColumn},
+			Table:   contract.PropertyTable,
+			Columns: []string{contract.PropertyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -361,14 +361,14 @@ func (cuo *ContractUpdateOne) SetEndDate(t time.Time) *ContractUpdateOne {
 }
 
 // SetPayAmount sets the "pay_amount" field.
-func (cuo *ContractUpdateOne) SetPayAmount(f float32) *ContractUpdateOne {
+func (cuo *ContractUpdateOne) SetPayAmount(f float64) *ContractUpdateOne {
 	cuo.mutation.ResetPayAmount()
 	cuo.mutation.SetPayAmount(f)
 	return cuo
 }
 
 // AddPayAmount adds f to the "pay_amount" field.
-func (cuo *ContractUpdateOne) AddPayAmount(f float32) *ContractUpdateOne {
+func (cuo *ContractUpdateOne) AddPayAmount(f float64) *ContractUpdateOne {
 	cuo.mutation.AddPayAmount(f)
 	return cuo
 }
@@ -394,15 +394,15 @@ func (cuo *ContractUpdateOne) AddUsers(u ...*User) *ContractUpdateOne {
 	return cuo.AddUserIDs(ids...)
 }
 
-// SetRentID sets the "rent" edge to the Property entity by ID.
-func (cuo *ContractUpdateOne) SetRentID(id int) *ContractUpdateOne {
-	cuo.mutation.SetRentID(id)
+// SetPropertyID sets the "property" edge to the Property entity by ID.
+func (cuo *ContractUpdateOne) SetPropertyID(id int) *ContractUpdateOne {
+	cuo.mutation.SetPropertyID(id)
 	return cuo
 }
 
-// SetRent sets the "rent" edge to the Property entity.
-func (cuo *ContractUpdateOne) SetRent(p *Property) *ContractUpdateOne {
-	return cuo.SetRentID(p.ID)
+// SetProperty sets the "property" edge to the Property entity.
+func (cuo *ContractUpdateOne) SetProperty(p *Property) *ContractUpdateOne {
+	return cuo.SetPropertyID(p.ID)
 }
 
 // Mutation returns the ContractMutation object of the builder.
@@ -431,9 +431,9 @@ func (cuo *ContractUpdateOne) RemoveUsers(u ...*User) *ContractUpdateOne {
 	return cuo.RemoveUserIDs(ids...)
 }
 
-// ClearRent clears the "rent" edge to the Property entity.
-func (cuo *ContractUpdateOne) ClearRent() *ContractUpdateOne {
-	cuo.mutation.ClearRent()
+// ClearProperty clears the "property" edge to the Property entity.
+func (cuo *ContractUpdateOne) ClearProperty() *ContractUpdateOne {
+	cuo.mutation.ClearProperty()
 	return cuo
 }
 
@@ -506,8 +506,8 @@ func (cuo *ContractUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (cuo *ContractUpdateOne) check() error {
-	if _, ok := cuo.mutation.RentID(); cuo.mutation.RentCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"rent\"")
+	if _, ok := cuo.mutation.PropertyID(); cuo.mutation.PropertyCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"property\"")
 	}
 	return nil
 }
@@ -563,14 +563,14 @@ func (cuo *ContractUpdateOne) sqlSave(ctx context.Context) (_node *Contract, err
 	}
 	if value, ok := cuo.mutation.PayAmount(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
+			Type:   field.TypeFloat64,
 			Value:  value,
 			Column: contract.FieldPayAmount,
 		})
 	}
 	if value, ok := cuo.mutation.AddedPayAmount(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
+			Type:   field.TypeFloat64,
 			Value:  value,
 			Column: contract.FieldPayAmount,
 		})
@@ -636,12 +636,12 @@ func (cuo *ContractUpdateOne) sqlSave(ctx context.Context) (_node *Contract, err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if cuo.mutation.RentCleared() {
+	if cuo.mutation.PropertyCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
-			Table:   contract.RentTable,
-			Columns: []string{contract.RentColumn},
+			Table:   contract.PropertyTable,
+			Columns: []string{contract.PropertyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -652,12 +652,12 @@ func (cuo *ContractUpdateOne) sqlSave(ctx context.Context) (_node *Contract, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.mutation.RentIDs(); len(nodes) > 0 {
+	if nodes := cuo.mutation.PropertyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
-			Table:   contract.RentTable,
-			Columns: []string{contract.RentColumn},
+			Table:   contract.PropertyTable,
+			Columns: []string{contract.PropertyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

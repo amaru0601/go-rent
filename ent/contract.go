@@ -22,7 +22,7 @@ type Contract struct {
 	// EndDate holds the value of the "end_date" field.
 	EndDate time.Time `json:"end_date,omitempty"`
 	// PayAmount holds the value of the "pay_amount" field.
-	PayAmount float32 `json:"pay_amount,omitempty"`
+	PayAmount float64 `json:"pay_amount,omitempty"`
 	// PayDate holds the value of the "pay_date" field.
 	PayDate time.Time `json:"pay_date,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -35,8 +35,8 @@ type Contract struct {
 type ContractEdges struct {
 	// Users holds the value of the users edge.
 	Users []*User `json:"users,omitempty"`
-	// Rent holds the value of the rent edge.
-	Rent *Property `json:"rent,omitempty"`
+	// Property holds the value of the property edge.
+	Property *Property `json:"property,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -51,18 +51,18 @@ func (e ContractEdges) UsersOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "users"}
 }
 
-// RentOrErr returns the Rent value or an error if the edge
+// PropertyOrErr returns the Property value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e ContractEdges) RentOrErr() (*Property, error) {
+func (e ContractEdges) PropertyOrErr() (*Property, error) {
 	if e.loadedTypes[1] {
-		if e.Rent == nil {
-			// The edge rent was loaded in eager-loading,
+		if e.Property == nil {
+			// The edge property was loaded in eager-loading,
 			// but was not found.
 			return nil, &NotFoundError{label: property.Label}
 		}
-		return e.Rent, nil
+		return e.Property, nil
 	}
-	return nil, &NotLoadedError{edge: "rent"}
+	return nil, &NotLoadedError{edge: "property"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -115,7 +115,7 @@ func (c *Contract) assignValues(columns []string, values []interface{}) error {
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field pay_amount", values[i])
 			} else if value.Valid {
-				c.PayAmount = float32(value.Float64)
+				c.PayAmount = value.Float64
 			}
 		case contract.FieldPayDate:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -140,9 +140,9 @@ func (c *Contract) QueryUsers() *UserQuery {
 	return (&ContractClient{config: c.config}).QueryUsers(c)
 }
 
-// QueryRent queries the "rent" edge of the Contract entity.
-func (c *Contract) QueryRent() *PropertyQuery {
-	return (&ContractClient{config: c.config}).QueryRent(c)
+// QueryProperty queries the "property" edge of the Contract entity.
+func (c *Contract) QueryProperty() *PropertyQuery {
+	return (&ContractClient{config: c.config}).QueryProperty(c)
 }
 
 // Update returns a builder for updating this Contract.

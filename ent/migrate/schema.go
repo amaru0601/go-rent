@@ -13,7 +13,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "start_date", Type: field.TypeTime},
 		{Name: "end_date", Type: field.TypeTime},
-		{Name: "pay_amount", Type: field.TypeFloat32},
+		{Name: "pay_amount", Type: field.TypeFloat64},
 		{Name: "pay_date", Type: field.TypeTime},
 		{Name: "property_contract", Type: field.TypeInt, Unique: true, Nullable: true},
 	}

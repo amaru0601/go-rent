@@ -37,6 +37,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Contract() ContractResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -45,7 +46,17 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Contract struct {
+		EndDate   func(childComplexity int) int
+		PayAmount func(childComplexity int) int
+		PayDate   func(childComplexity int) int
+		Property  func(childComplexity int) int
+		StartDate func(childComplexity int) int
+		Tenant    func(childComplexity int) int
+	}
+
 	Mutation struct {
+		CreateContract func(childComplexity int, contract ContractInput) int
 		CreateProperty func(childComplexity int, property PropertyInput) int
 		CreateUser     func(childComplexity int, user UserInput) int
 	}
@@ -74,9 +85,13 @@ type ComplexityRoot struct {
 	}
 }
 
+type ContractResolver interface {
+	Tenant(ctx context.Context, obj *ent.Contract) (*ent.User, error)
+}
 type MutationResolver interface {
 	CreateUser(ctx context.Context, user UserInput) (*ent.User, error)
 	CreateProperty(ctx context.Context, property PropertyInput) (*ent.Property, error)
+	CreateContract(ctx context.Context, contract ContractInput) (*ent.Contract, error)
 }
 type QueryResolver interface {
 	Users(ctx context.Context) ([]*ent.User, error)
@@ -96,6 +111,60 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Contract.endDate":
+		if e.complexity.Contract.EndDate == nil {
+			break
+		}
+
+		return e.complexity.Contract.EndDate(childComplexity), true
+
+	case "Contract.payAmount":
+		if e.complexity.Contract.PayAmount == nil {
+			break
+		}
+
+		return e.complexity.Contract.PayAmount(childComplexity), true
+
+	case "Contract.payDate":
+		if e.complexity.Contract.PayDate == nil {
+			break
+		}
+
+		return e.complexity.Contract.PayDate(childComplexity), true
+
+	case "Contract.property":
+		if e.complexity.Contract.Property == nil {
+			break
+		}
+
+		return e.complexity.Contract.Property(childComplexity), true
+
+	case "Contract.startDate":
+		if e.complexity.Contract.StartDate == nil {
+			break
+		}
+
+		return e.complexity.Contract.StartDate(childComplexity), true
+
+	case "Contract.tenant":
+		if e.complexity.Contract.Tenant == nil {
+			break
+		}
+
+		return e.complexity.Contract.Tenant(childComplexity), true
+
+	case "Mutation.createContract":
+		if e.complexity.Mutation.CreateContract == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createContract_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateContract(childComplexity, args["contract"].(ContractInput)), true
 
 	case "Mutation.createProperty":
 		if e.complexity.Mutation.CreateProperty == nil {
@@ -295,14 +364,6 @@ type User {
     birthday: Time
 }
 
-input UserInput {
-    birthday: Time
-    names: String!
-    lastnames: String!
-    activate: Boolean
-    email: String!
-}
-
 enum TypeProperty {
     HOUSE,
     APARTMENT,
@@ -320,17 +381,45 @@ type Property {
     city: String!
 }
 
+type Contract {
+    startDate: Time!
+    endDate: Time!
+    payAmount: Float!
+    payDate: Time!
+    tenant: User!
+    property: Property!
+}
+
 input PropertyInput {
     class: TypeProperty! = APARTMENT
-    owner: ID!
+    ownerID: ID!
     address: String!
     description: String!
     city: String!
 }
 
+input UserInput {
+    birthday: Time
+    names: String!
+    lastnames: String!
+    activate: Boolean
+    email: String!
+}
+
+input ContractInput {
+    ownerID: ID!
+    tenantID: ID!
+    startDate: Time!
+    endDate: Time!
+    payAmount: Float!
+    payDate: Time!
+    propertyID: ID!
+}
+
 type Mutation {
     createUser(user: UserInput!): User!
-    createProperty(property: PropertyInput!): Property
+    createProperty(property: PropertyInput!): Property!
+    createContract(contract: ContractInput!): Contract!
 }
 
 type Query {
@@ -342,6 +431,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createContract_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ContractInput
+	if tmp, ok := rawArgs["contract"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contract"))
+		arg0, err = ec.unmarshalNContractInput2githubᚗcomᚋamaru0601ᚋgoᚑrentᚐContractInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["contract"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createProperty_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -426,6 +530,216 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _Contract_startDate(ctx context.Context, field graphql.CollectedField, obj *ent.Contract) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Contract",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Contract_endDate(ctx context.Context, field graphql.CollectedField, obj *ent.Contract) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Contract",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Contract_payAmount(ctx context.Context, field graphql.CollectedField, obj *ent.Contract) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Contract",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PayAmount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Contract_payDate(ctx context.Context, field graphql.CollectedField, obj *ent.Contract) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Contract",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PayDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Contract_tenant(ctx context.Context, field graphql.CollectedField, obj *ent.Contract) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Contract",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Contract().Tenant(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋamaru0601ᚋgoᚑrentᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Contract_property(ctx context.Context, field graphql.CollectedField, obj *ent.Contract) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Contract",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Property(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Property)
+	fc.Result = res
+	return ec.marshalNProperty2ᚖgithubᚗcomᚋamaru0601ᚋgoᚑrentᚋentᚐProperty(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -500,11 +814,56 @@ func (ec *executionContext) _Mutation_createProperty(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.Property)
 	fc.Result = res
-	return ec.marshalOProperty2ᚖgithubᚗcomᚋamaru0601ᚋgoᚑrentᚋentᚐProperty(ctx, field.Selections, res)
+	return ec.marshalNProperty2ᚖgithubᚗcomᚋamaru0601ᚋgoᚑrentᚋentᚐProperty(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createContract(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createContract_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateContract(rctx, args["contract"].(ContractInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Contract)
+	fc.Result = res
+	return ec.marshalNContract2ᚖgithubᚗcomᚋamaru0601ᚋgoᚑrentᚋentᚐContract(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_class(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -2181,6 +2540,77 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputContractInput(ctx context.Context, obj interface{}) (ContractInput, error) {
+	var it ContractInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "ownerID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ownerID"))
+			it.OwnerID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tenantID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenantID"))
+			it.TenantID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "startDate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startDate"))
+			it.StartDate, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "endDate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endDate"))
+			it.EndDate, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "payAmount":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payAmount"))
+			it.PayAmount, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "payDate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payDate"))
+			it.PayDate, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "propertyID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("propertyID"))
+			it.PropertyID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPropertyInput(ctx context.Context, obj interface{}) (PropertyInput, error) {
 	var it PropertyInput
 	asMap := map[string]interface{}{}
@@ -2202,11 +2632,11 @@ func (ec *executionContext) unmarshalInputPropertyInput(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
-		case "owner":
+		case "ownerID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("owner"))
-			it.Owner, err = ec.unmarshalNID2int(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ownerID"))
+			it.OwnerID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2303,6 +2733,107 @@ func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj int
 
 // region    **************************** object.gotpl ****************************
 
+var contractImplementors = []string{"Contract"}
+
+func (ec *executionContext) _Contract(ctx context.Context, sel ast.SelectionSet, obj *ent.Contract) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, contractImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Contract")
+		case "startDate":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Contract_startDate(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "endDate":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Contract_endDate(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "payAmount":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Contract_payAmount(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "payDate":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Contract_payDate(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "tenant":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Contract_tenant(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "property":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Contract_property(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -2339,6 +2870,19 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createContract":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createContract(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3014,6 +3558,40 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNContract2githubᚗcomᚋamaru0601ᚋgoᚑrentᚋentᚐContract(ctx context.Context, sel ast.SelectionSet, v ent.Contract) graphql.Marshaler {
+	return ec._Contract(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNContract2ᚖgithubᚗcomᚋamaru0601ᚋgoᚑrentᚋentᚐContract(ctx context.Context, sel ast.SelectionSet, v *ent.Contract) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Contract(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNContractInput2githubᚗcomᚋamaru0601ᚋgoᚑrentᚐContractInput(ctx context.Context, v interface{}) (ContractInput, error) {
+	res, err := ec.unmarshalInputContractInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloatContext(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return graphql.WrapContextMarshaler(ctx, res)
+}
+
 func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalIntID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3029,6 +3607,20 @@ func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.Selectio
 	return res
 }
 
+func (ec *executionContext) marshalNProperty2githubᚗcomᚋamaru0601ᚋgoᚑrentᚋentᚐProperty(ctx context.Context, sel ast.SelectionSet, v ent.Property) graphql.Marshaler {
+	return ec._Property(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNProperty2ᚖgithubᚗcomᚋamaru0601ᚋgoᚑrentᚋentᚐProperty(ctx context.Context, sel ast.SelectionSet, v *ent.Property) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Property(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNPropertyInput2githubᚗcomᚋamaru0601ᚋgoᚑrentᚐPropertyInput(ctx context.Context, v interface{}) (PropertyInput, error) {
 	res, err := ec.unmarshalInputPropertyInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3041,6 +3633,21 @@ func (ec *executionContext) unmarshalNString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := graphql.MarshalTime(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -3355,13 +3962,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
-}
-
-func (ec *executionContext) marshalOProperty2ᚖgithubᚗcomᚋamaru0601ᚋgoᚑrentᚋentᚐProperty(ctx context.Context, sel ast.SelectionSet, v *ent.Property) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Property(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

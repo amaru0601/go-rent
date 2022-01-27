@@ -28,9 +28,9 @@ type ContractQuery struct {
 	fields     []string
 	predicates []predicate.Contract
 	// eager-loading edges.
-	withUsers *UserQuery
-	withRent  *PropertyQuery
-	withFKs   bool
+	withUsers    *UserQuery
+	withProperty *PropertyQuery
+	withFKs      bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -89,8 +89,8 @@ func (cq *ContractQuery) QueryUsers() *UserQuery {
 	return query
 }
 
-// QueryRent chains the current query on the "rent" edge.
-func (cq *ContractQuery) QueryRent() *PropertyQuery {
+// QueryProperty chains the current query on the "property" edge.
+func (cq *ContractQuery) QueryProperty() *PropertyQuery {
 	query := &PropertyQuery{config: cq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
@@ -103,7 +103,7 @@ func (cq *ContractQuery) QueryRent() *PropertyQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(contract.Table, contract.FieldID, selector),
 			sqlgraph.To(property.Table, property.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, contract.RentTable, contract.RentColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, contract.PropertyTable, contract.PropertyColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -287,13 +287,13 @@ func (cq *ContractQuery) Clone() *ContractQuery {
 		return nil
 	}
 	return &ContractQuery{
-		config:     cq.config,
-		limit:      cq.limit,
-		offset:     cq.offset,
-		order:      append([]OrderFunc{}, cq.order...),
-		predicates: append([]predicate.Contract{}, cq.predicates...),
-		withUsers:  cq.withUsers.Clone(),
-		withRent:   cq.withRent.Clone(),
+		config:       cq.config,
+		limit:        cq.limit,
+		offset:       cq.offset,
+		order:        append([]OrderFunc{}, cq.order...),
+		predicates:   append([]predicate.Contract{}, cq.predicates...),
+		withUsers:    cq.withUsers.Clone(),
+		withProperty: cq.withProperty.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
@@ -311,14 +311,14 @@ func (cq *ContractQuery) WithUsers(opts ...func(*UserQuery)) *ContractQuery {
 	return cq
 }
 
-// WithRent tells the query-builder to eager-load the nodes that are connected to
-// the "rent" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *ContractQuery) WithRent(opts ...func(*PropertyQuery)) *ContractQuery {
+// WithProperty tells the query-builder to eager-load the nodes that are connected to
+// the "property" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *ContractQuery) WithProperty(opts ...func(*PropertyQuery)) *ContractQuery {
 	query := &PropertyQuery{config: cq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	cq.withRent = query
+	cq.withProperty = query
 	return cq
 }
 
@@ -390,10 +390,10 @@ func (cq *ContractQuery) sqlAll(ctx context.Context) ([]*Contract, error) {
 		_spec       = cq.querySpec()
 		loadedTypes = [2]bool{
 			cq.withUsers != nil,
-			cq.withRent != nil,
+			cq.withProperty != nil,
 		}
 	)
-	if cq.withRent != nil {
+	if cq.withProperty != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -484,7 +484,7 @@ func (cq *ContractQuery) sqlAll(ctx context.Context) ([]*Contract, error) {
 		}
 	}
 
-	if query := cq.withRent; query != nil {
+	if query := cq.withProperty; query != nil {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*Contract)
 		for i := range nodes {
@@ -508,7 +508,7 @@ func (cq *ContractQuery) sqlAll(ctx context.Context) ([]*Contract, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "property_contract" returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.Rent = n
+				nodes[i].Edges.Property = n
 			}
 		}
 	}

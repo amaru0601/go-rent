@@ -33,23 +33,23 @@ const (
 // ContractMutation represents an operation that mutates the Contract nodes in the graph.
 type ContractMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	start_date    *time.Time
-	end_date      *time.Time
-	pay_amount    *float32
-	addpay_amount *float32
-	pay_date      *time.Time
-	clearedFields map[string]struct{}
-	users         map[int]struct{}
-	removedusers  map[int]struct{}
-	clearedusers  bool
-	rent          *int
-	clearedrent   bool
-	done          bool
-	oldValue      func(context.Context) (*Contract, error)
-	predicates    []predicate.Contract
+	op              Op
+	typ             string
+	id              *int
+	start_date      *time.Time
+	end_date        *time.Time
+	pay_amount      *float64
+	addpay_amount   *float64
+	pay_date        *time.Time
+	clearedFields   map[string]struct{}
+	users           map[int]struct{}
+	removedusers    map[int]struct{}
+	clearedusers    bool
+	property        *int
+	clearedproperty bool
+	done            bool
+	oldValue        func(context.Context) (*Contract, error)
+	predicates      []predicate.Contract
 }
 
 var _ ent.Mutation = (*ContractMutation)(nil)
@@ -204,13 +204,13 @@ func (m *ContractMutation) ResetEndDate() {
 }
 
 // SetPayAmount sets the "pay_amount" field.
-func (m *ContractMutation) SetPayAmount(f float32) {
+func (m *ContractMutation) SetPayAmount(f float64) {
 	m.pay_amount = &f
 	m.addpay_amount = nil
 }
 
 // PayAmount returns the value of the "pay_amount" field in the mutation.
-func (m *ContractMutation) PayAmount() (r float32, exists bool) {
+func (m *ContractMutation) PayAmount() (r float64, exists bool) {
 	v := m.pay_amount
 	if v == nil {
 		return
@@ -221,7 +221,7 @@ func (m *ContractMutation) PayAmount() (r float32, exists bool) {
 // OldPayAmount returns the old "pay_amount" field's value of the Contract entity.
 // If the Contract object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ContractMutation) OldPayAmount(ctx context.Context) (v float32, err error) {
+func (m *ContractMutation) OldPayAmount(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldPayAmount is only allowed on UpdateOne operations")
 	}
@@ -236,7 +236,7 @@ func (m *ContractMutation) OldPayAmount(ctx context.Context) (v float32, err err
 }
 
 // AddPayAmount adds f to the "pay_amount" field.
-func (m *ContractMutation) AddPayAmount(f float32) {
+func (m *ContractMutation) AddPayAmount(f float64) {
 	if m.addpay_amount != nil {
 		*m.addpay_amount += f
 	} else {
@@ -245,7 +245,7 @@ func (m *ContractMutation) AddPayAmount(f float32) {
 }
 
 // AddedPayAmount returns the value that was added to the "pay_amount" field in this mutation.
-func (m *ContractMutation) AddedPayAmount() (r float32, exists bool) {
+func (m *ContractMutation) AddedPayAmount() (r float64, exists bool) {
 	v := m.addpay_amount
 	if v == nil {
 		return
@@ -349,43 +349,43 @@ func (m *ContractMutation) ResetUsers() {
 	m.removedusers = nil
 }
 
-// SetRentID sets the "rent" edge to the Property entity by id.
-func (m *ContractMutation) SetRentID(id int) {
-	m.rent = &id
+// SetPropertyID sets the "property" edge to the Property entity by id.
+func (m *ContractMutation) SetPropertyID(id int) {
+	m.property = &id
 }
 
-// ClearRent clears the "rent" edge to the Property entity.
-func (m *ContractMutation) ClearRent() {
-	m.clearedrent = true
+// ClearProperty clears the "property" edge to the Property entity.
+func (m *ContractMutation) ClearProperty() {
+	m.clearedproperty = true
 }
 
-// RentCleared reports if the "rent" edge to the Property entity was cleared.
-func (m *ContractMutation) RentCleared() bool {
-	return m.clearedrent
+// PropertyCleared reports if the "property" edge to the Property entity was cleared.
+func (m *ContractMutation) PropertyCleared() bool {
+	return m.clearedproperty
 }
 
-// RentID returns the "rent" edge ID in the mutation.
-func (m *ContractMutation) RentID() (id int, exists bool) {
-	if m.rent != nil {
-		return *m.rent, true
+// PropertyID returns the "property" edge ID in the mutation.
+func (m *ContractMutation) PropertyID() (id int, exists bool) {
+	if m.property != nil {
+		return *m.property, true
 	}
 	return
 }
 
-// RentIDs returns the "rent" edge IDs in the mutation.
+// PropertyIDs returns the "property" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// RentID instead. It exists only for internal usage by the builders.
-func (m *ContractMutation) RentIDs() (ids []int) {
-	if id := m.rent; id != nil {
+// PropertyID instead. It exists only for internal usage by the builders.
+func (m *ContractMutation) PropertyIDs() (ids []int) {
+	if id := m.property; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetRent resets all changes to the "rent" edge.
-func (m *ContractMutation) ResetRent() {
-	m.rent = nil
-	m.clearedrent = false
+// ResetProperty resets all changes to the "property" edge.
+func (m *ContractMutation) ResetProperty() {
+	m.property = nil
+	m.clearedproperty = false
 }
 
 // Where appends a list predicates to the ContractMutation builder.
@@ -477,7 +477,7 @@ func (m *ContractMutation) SetField(name string, value ent.Value) error {
 		m.SetEndDate(v)
 		return nil
 	case contract.FieldPayAmount:
-		v, ok := value.(float32)
+		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -521,7 +521,7 @@ func (m *ContractMutation) AddedField(name string) (ent.Value, bool) {
 func (m *ContractMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case contract.FieldPayAmount:
-		v, ok := value.(float32)
+		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -576,8 +576,8 @@ func (m *ContractMutation) AddedEdges() []string {
 	if m.users != nil {
 		edges = append(edges, contract.EdgeUsers)
 	}
-	if m.rent != nil {
-		edges = append(edges, contract.EdgeRent)
+	if m.property != nil {
+		edges = append(edges, contract.EdgeProperty)
 	}
 	return edges
 }
@@ -592,8 +592,8 @@ func (m *ContractMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case contract.EdgeRent:
-		if id := m.rent; id != nil {
+	case contract.EdgeProperty:
+		if id := m.property; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -629,8 +629,8 @@ func (m *ContractMutation) ClearedEdges() []string {
 	if m.clearedusers {
 		edges = append(edges, contract.EdgeUsers)
 	}
-	if m.clearedrent {
-		edges = append(edges, contract.EdgeRent)
+	if m.clearedproperty {
+		edges = append(edges, contract.EdgeProperty)
 	}
 	return edges
 }
@@ -641,8 +641,8 @@ func (m *ContractMutation) EdgeCleared(name string) bool {
 	switch name {
 	case contract.EdgeUsers:
 		return m.clearedusers
-	case contract.EdgeRent:
-		return m.clearedrent
+	case contract.EdgeProperty:
+		return m.clearedproperty
 	}
 	return false
 }
@@ -651,8 +651,8 @@ func (m *ContractMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *ContractMutation) ClearEdge(name string) error {
 	switch name {
-	case contract.EdgeRent:
-		m.ClearRent()
+	case contract.EdgeProperty:
+		m.ClearProperty()
 		return nil
 	}
 	return fmt.Errorf("unknown Contract unique edge %s", name)
@@ -665,8 +665,8 @@ func (m *ContractMutation) ResetEdge(name string) error {
 	case contract.EdgeUsers:
 		m.ResetUsers()
 		return nil
-	case contract.EdgeRent:
-		m.ResetRent()
+	case contract.EdgeProperty:
+		m.ResetProperty()
 		return nil
 	}
 	return fmt.Errorf("unknown Contract edge %s", name)

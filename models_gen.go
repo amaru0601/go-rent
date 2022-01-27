@@ -8,9 +8,19 @@ import (
 	"github.com/amaru0601/go-rent/ent/property"
 )
 
+type ContractInput struct {
+	OwnerID    int       `json:"ownerID"`
+	TenantID   int       `json:"tenantID"`
+	StartDate  time.Time `json:"startDate"`
+	EndDate    time.Time `json:"endDate"`
+	PayAmount  float64   `json:"payAmount"`
+	PayDate    time.Time `json:"payDate"`
+	PropertyID int       `json:"propertyID"`
+}
+
 type PropertyInput struct {
 	Class       property.Class `json:"class"`
-	Owner       int            `json:"owner"`
+	OwnerID     int            `json:"ownerID"`
 	Address     string         `json:"address"`
 	Description string         `json:"description"`
 	City        string         `json:"city"`

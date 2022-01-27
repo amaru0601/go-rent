@@ -35,7 +35,7 @@ func (cc *ContractCreate) SetEndDate(t time.Time) *ContractCreate {
 }
 
 // SetPayAmount sets the "pay_amount" field.
-func (cc *ContractCreate) SetPayAmount(f float32) *ContractCreate {
+func (cc *ContractCreate) SetPayAmount(f float64) *ContractCreate {
 	cc.mutation.SetPayAmount(f)
 	return cc
 }
@@ -61,15 +61,15 @@ func (cc *ContractCreate) AddUsers(u ...*User) *ContractCreate {
 	return cc.AddUserIDs(ids...)
 }
 
-// SetRentID sets the "rent" edge to the Property entity by ID.
-func (cc *ContractCreate) SetRentID(id int) *ContractCreate {
-	cc.mutation.SetRentID(id)
+// SetPropertyID sets the "property" edge to the Property entity by ID.
+func (cc *ContractCreate) SetPropertyID(id int) *ContractCreate {
+	cc.mutation.SetPropertyID(id)
 	return cc
 }
 
-// SetRent sets the "rent" edge to the Property entity.
-func (cc *ContractCreate) SetRent(p *Property) *ContractCreate {
-	return cc.SetRentID(p.ID)
+// SetProperty sets the "property" edge to the Property entity.
+func (cc *ContractCreate) SetProperty(p *Property) *ContractCreate {
+	return cc.SetPropertyID(p.ID)
 }
 
 // Mutation returns the ContractMutation object of the builder.
@@ -154,8 +154,8 @@ func (cc *ContractCreate) check() error {
 	if _, ok := cc.mutation.PayDate(); !ok {
 		return &ValidationError{Name: "pay_date", err: errors.New(`ent: missing required field "pay_date"`)}
 	}
-	if _, ok := cc.mutation.RentID(); !ok {
-		return &ValidationError{Name: "rent", err: errors.New("ent: missing required edge \"rent\"")}
+	if _, ok := cc.mutation.PropertyID(); !ok {
+		return &ValidationError{Name: "property", err: errors.New("ent: missing required edge \"property\"")}
 	}
 	return nil
 }
@@ -202,7 +202,7 @@ func (cc *ContractCreate) createSpec() (*Contract, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := cc.mutation.PayAmount(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeFloat32,
+			Type:   field.TypeFloat64,
 			Value:  value,
 			Column: contract.FieldPayAmount,
 		})
@@ -235,12 +235,12 @@ func (cc *ContractCreate) createSpec() (*Contract, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := cc.mutation.RentIDs(); len(nodes) > 0 {
+	if nodes := cc.mutation.PropertyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
-			Table:   contract.RentTable,
-			Columns: []string{contract.RentColumn},
+			Table:   contract.PropertyTable,
+			Columns: []string{contract.PropertyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

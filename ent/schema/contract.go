@@ -16,7 +16,7 @@ func (Contract) Fields() []ent.Field {
 	return []ent.Field{
 		field.Time("start_date"),
 		field.Time("end_date"),
-		field.Float32("pay_amount"),
+		field.Float("pay_amount"),
 		field.Time("pay_date"),
 	}
 }
@@ -26,6 +26,6 @@ func (Contract) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("users", User.Type).
 			Ref("contracts"),
-		edge.From("rent", Property.Type).Ref("contract").Unique().Required(),
+		edge.From("property", Property.Type).Ref("contract").Unique().Required(),
 	}
 }

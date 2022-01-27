@@ -239,15 +239,15 @@ func (c *ContractClient) QueryUsers(co *Contract) *UserQuery {
 	return query
 }
 
-// QueryRent queries the rent edge of a Contract.
-func (c *ContractClient) QueryRent(co *Contract) *PropertyQuery {
+// QueryProperty queries the property edge of a Contract.
+func (c *ContractClient) QueryProperty(co *Contract) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := co.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(contract.Table, contract.FieldID, id),
 			sqlgraph.To(property.Table, property.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, contract.RentTable, contract.RentColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, contract.PropertyTable, contract.PropertyColumn),
 		)
 		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
 		return fromV, nil

@@ -12,10 +12,10 @@ func (c *Contract) Users(ctx context.Context) ([]*User, error) {
 	return result, err
 }
 
-func (c *Contract) Rent(ctx context.Context) (*Property, error) {
-	result, err := c.Edges.RentOrErr()
+func (c *Contract) Property(ctx context.Context) (*Property, error) {
+	result, err := c.Edges.PropertyOrErr()
 	if IsNotLoaded(err) {
-		result, err = c.QueryRent().Only(ctx)
+		result, err = c.QueryProperty().Only(ctx)
 	}
 	return result, err
 }
