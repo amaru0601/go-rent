@@ -548,7 +548,7 @@ func HasContract() predicate.Property {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ContractTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, ContractTable, ContractColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, ContractTable, ContractColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -560,7 +560,7 @@ func HasContractWith(preds ...predicate.Contract) predicate.Property {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ContractInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, ContractTable, ContractColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, ContractTable, ContractColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

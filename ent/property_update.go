@@ -85,23 +85,19 @@ func (pu *PropertyUpdate) SetOwner(u *User) *PropertyUpdate {
 	return pu.SetOwnerID(u.ID)
 }
 
-// SetContractID sets the "contract" edge to the Contract entity by ID.
-func (pu *PropertyUpdate) SetContractID(id int) *PropertyUpdate {
-	pu.mutation.SetContractID(id)
+// AddContractIDs adds the "contract" edge to the Contract entity by IDs.
+func (pu *PropertyUpdate) AddContractIDs(ids ...int) *PropertyUpdate {
+	pu.mutation.AddContractIDs(ids...)
 	return pu
 }
 
-// SetNillableContractID sets the "contract" edge to the Contract entity by ID if the given value is not nil.
-func (pu *PropertyUpdate) SetNillableContractID(id *int) *PropertyUpdate {
-	if id != nil {
-		pu = pu.SetContractID(*id)
+// AddContract adds the "contract" edges to the Contract entity.
+func (pu *PropertyUpdate) AddContract(c ...*Contract) *PropertyUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
-	return pu
-}
-
-// SetContract sets the "contract" edge to the Contract entity.
-func (pu *PropertyUpdate) SetContract(c *Contract) *PropertyUpdate {
-	return pu.SetContractID(c.ID)
+	return pu.AddContractIDs(ids...)
 }
 
 // Mutation returns the PropertyMutation object of the builder.
@@ -115,10 +111,25 @@ func (pu *PropertyUpdate) ClearOwner() *PropertyUpdate {
 	return pu
 }
 
-// ClearContract clears the "contract" edge to the Contract entity.
+// ClearContract clears all "contract" edges to the Contract entity.
 func (pu *PropertyUpdate) ClearContract() *PropertyUpdate {
 	pu.mutation.ClearContract()
 	return pu
+}
+
+// RemoveContractIDs removes the "contract" edge to Contract entities by IDs.
+func (pu *PropertyUpdate) RemoveContractIDs(ids ...int) *PropertyUpdate {
+	pu.mutation.RemoveContractIDs(ids...)
+	return pu
+}
+
+// RemoveContract removes "contract" edges to Contract entities.
+func (pu *PropertyUpdate) RemoveContract(c ...*Contract) *PropertyUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pu.RemoveContractIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -281,7 +292,7 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if pu.mutation.ContractCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   property.ContractTable,
 			Columns: []string{property.ContractColumn},
@@ -295,9 +306,28 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
+	if nodes := pu.mutation.RemovedContractIDs(); len(nodes) > 0 && !pu.mutation.ContractCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   property.ContractTable,
+			Columns: []string{property.ContractColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
 	if nodes := pu.mutation.ContractIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   property.ContractTable,
 			Columns: []string{property.ContractColumn},
@@ -390,23 +420,19 @@ func (puo *PropertyUpdateOne) SetOwner(u *User) *PropertyUpdateOne {
 	return puo.SetOwnerID(u.ID)
 }
 
-// SetContractID sets the "contract" edge to the Contract entity by ID.
-func (puo *PropertyUpdateOne) SetContractID(id int) *PropertyUpdateOne {
-	puo.mutation.SetContractID(id)
+// AddContractIDs adds the "contract" edge to the Contract entity by IDs.
+func (puo *PropertyUpdateOne) AddContractIDs(ids ...int) *PropertyUpdateOne {
+	puo.mutation.AddContractIDs(ids...)
 	return puo
 }
 
-// SetNillableContractID sets the "contract" edge to the Contract entity by ID if the given value is not nil.
-func (puo *PropertyUpdateOne) SetNillableContractID(id *int) *PropertyUpdateOne {
-	if id != nil {
-		puo = puo.SetContractID(*id)
+// AddContract adds the "contract" edges to the Contract entity.
+func (puo *PropertyUpdateOne) AddContract(c ...*Contract) *PropertyUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
-	return puo
-}
-
-// SetContract sets the "contract" edge to the Contract entity.
-func (puo *PropertyUpdateOne) SetContract(c *Contract) *PropertyUpdateOne {
-	return puo.SetContractID(c.ID)
+	return puo.AddContractIDs(ids...)
 }
 
 // Mutation returns the PropertyMutation object of the builder.
@@ -420,10 +446,25 @@ func (puo *PropertyUpdateOne) ClearOwner() *PropertyUpdateOne {
 	return puo
 }
 
-// ClearContract clears the "contract" edge to the Contract entity.
+// ClearContract clears all "contract" edges to the Contract entity.
 func (puo *PropertyUpdateOne) ClearContract() *PropertyUpdateOne {
 	puo.mutation.ClearContract()
 	return puo
+}
+
+// RemoveContractIDs removes the "contract" edge to Contract entities by IDs.
+func (puo *PropertyUpdateOne) RemoveContractIDs(ids ...int) *PropertyUpdateOne {
+	puo.mutation.RemoveContractIDs(ids...)
+	return puo
+}
+
+// RemoveContract removes "contract" edges to Contract entities.
+func (puo *PropertyUpdateOne) RemoveContract(c ...*Contract) *PropertyUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return puo.RemoveContractIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -610,7 +651,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (_node *Property, err
 	}
 	if puo.mutation.ContractCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   property.ContractTable,
 			Columns: []string{property.ContractColumn},
@@ -624,9 +665,28 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (_node *Property, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
+	if nodes := puo.mutation.RemovedContractIDs(); len(nodes) > 0 && !puo.mutation.ContractCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   property.ContractTable,
+			Columns: []string{property.ContractColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: contract.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
 	if nodes := puo.mutation.ContractIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   property.ContractTable,
 			Columns: []string{property.ContractColumn},

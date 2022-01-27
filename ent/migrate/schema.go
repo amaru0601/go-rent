@@ -15,7 +15,7 @@ var (
 		{Name: "end_date", Type: field.TypeTime},
 		{Name: "pay_amount", Type: field.TypeFloat64},
 		{Name: "pay_date", Type: field.TypeTime},
-		{Name: "property_contract", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "property_contract", Type: field.TypeInt, Nullable: true},
 	}
 	// ContractsTable holds the schema information for the "contracts" table.
 	ContractsTable = &schema.Table{

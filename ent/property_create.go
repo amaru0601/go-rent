@@ -78,23 +78,19 @@ func (pc *PropertyCreate) SetOwner(u *User) *PropertyCreate {
 	return pc.SetOwnerID(u.ID)
 }
 
-// SetContractID sets the "contract" edge to the Contract entity by ID.
-func (pc *PropertyCreate) SetContractID(id int) *PropertyCreate {
-	pc.mutation.SetContractID(id)
+// AddContractIDs adds the "contract" edge to the Contract entity by IDs.
+func (pc *PropertyCreate) AddContractIDs(ids ...int) *PropertyCreate {
+	pc.mutation.AddContractIDs(ids...)
 	return pc
 }
 
-// SetNillableContractID sets the "contract" edge to the Contract entity by ID if the given value is not nil.
-func (pc *PropertyCreate) SetNillableContractID(id *int) *PropertyCreate {
-	if id != nil {
-		pc = pc.SetContractID(*id)
+// AddContract adds the "contract" edges to the Contract entity.
+func (pc *PropertyCreate) AddContract(c ...*Contract) *PropertyCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
 	}
-	return pc
-}
-
-// SetContract sets the "contract" edge to the Contract entity.
-func (pc *PropertyCreate) SetContract(c *Contract) *PropertyCreate {
-	return pc.SetContractID(c.ID)
+	return pc.AddContractIDs(ids...)
 }
 
 // Mutation returns the PropertyMutation object of the builder.
@@ -285,7 +281,7 @@ func (pc *PropertyCreate) createSpec() (*Property, *sqlgraph.CreateSpec) {
 	}
 	if nodes := pc.mutation.ContractIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   property.ContractTable,
 			Columns: []string{property.ContractColumn},

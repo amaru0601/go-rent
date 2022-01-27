@@ -5,65 +5,89 @@ package user
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/amaru0601/go-rent/ent"
-	"github.com/amaru0601/go-rent/ent/contract"
-	"github.com/amaru0601/go-rent/ent/predicate"
 	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 )
 
 func (r *contractResolver) Tenant(ctx context.Context, obj *ent.Contract) (*ent.User, error) {
 	//TODO improve query to get Tenant
-	return r.client.User.Query().Where(
-		user.HasContractsWith(
-			predicate.Contract(user.HasPropertiesWith(
-				property.HasContractWith(
-					contract.IDEQ(obj.ID),
-				),
-			)),
-		),
-	).Only(ctx)
+	propertyContract, err := obj.Property(ctx)
+
+	if err != nil {
+		log.Printf("failed querying contract property: %v", err)
+		return nil, err
+	}
+
+	return obj.
+		QueryUsers().
+		Where(user.Not(user.HasPropertiesWith(property.ID(propertyContract.ID)))).
+		Only(ctx)
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, user UserInput) (*ent.User, error) {
-	return r.client.User.Create().
+	newUser, err := r.client.User.Create().
 		SetNames(user.Names).
 		SetLastnames(user.Lastnames).
 		SetEmail(user.Email).
 		SetActivate(true).
 		SetCreatedAt(time.Now()).
 		SetBirthday(*user.Birthday).Save(ctx)
+
+	if err != nil {
+		log.Printf("failed creating user: %v", err)
+		return nil, err
+	}
+
+	return newUser, err
 }
 
 func (r *mutationResolver) CreateProperty(ctx context.Context, property PropertyInput) (*ent.Property, error) {
-	return r.client.Property.Create().
+	newProperty, err := r.client.Property.Create().
 		SetClass(property.Class).
 		SetDeleted(false).
 		SetAddress(property.Address).
 		SetCity(property.City).
 		SetDescription(property.Description).
 		SetOwnerID(property.OwnerID).Save(ctx)
+
+	if err != nil {
+		log.Printf("failed creating property: %v", err)
+		return nil, err
+	}
+
+	return newProperty, err
 }
 
 func (r *mutationResolver) CreateContract(ctx context.Context, contract ContractInput) (*ent.Contract, error) {
-	contract_, err := r.client.Contract.Create().
+	newContract, err := r.client.Contract.Create().
 		SetStartDate(contract.StartDate).
 		SetEndDate(contract.EndDate).
 		SetPayAmount(contract.PayAmount).
 		SetPayDate(contract.PayDate).
 		SetPropertyID(contract.PropertyID).Save(ctx)
 
-	owner, err := r.client.User.Query().Where(user.IDEQ(contract.OwnerID)).Only(ctx)
-	err = owner.Update().AddContractIDs(contract_.ID).Exec(ctx)
+	if err != nil {
+		log.Printf("failed creating contract: %v", err)
+		return nil, err
+	}
 
-	tenant, err := r.client.User.Query().Where(user.IDEQ(contract.TenantID)).Only(ctx)
-	err = tenant.Update().AddContractIDs(contract_.ID).Exec(ctx)
+	err = r.client.User.UpdateOneID(contract.OwnerID).AddContractIDs(newContract.ID).Exec(ctx)
+	if err != nil {
+		log.Printf("failed updating contract owner: %v", err)
+		return nil, err
+	}
 
-	//TODO: UPDATE PROPERTY CONTRACT ID
+	err = r.client.User.UpdateOneID(contract.TenantID).AddContractIDs(newContract.ID).Exec(ctx)
+	if err != nil {
+		log.Printf("failed updating contract tenant: %v", err)
+		return nil, err
+	}
 
-	return contract_, err
+	return newContract, err
 }
 
 func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {

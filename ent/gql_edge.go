@@ -17,7 +17,7 @@ func (c *Contract) Property(ctx context.Context) (*Property, error) {
 	if IsNotLoaded(err) {
 		result, err = c.QueryProperty().Only(ctx)
 	}
-	return result, err
+	return result, MaskNotFound(err)
 }
 
 func (pr *Property) Owner(ctx context.Context) (*User, error) {
@@ -28,12 +28,12 @@ func (pr *Property) Owner(ctx context.Context) (*User, error) {
 	return result, MaskNotFound(err)
 }
 
-func (pr *Property) Contract(ctx context.Context) (*Contract, error) {
+func (pr *Property) Contract(ctx context.Context) ([]*Contract, error) {
 	result, err := pr.Edges.ContractOrErr()
 	if IsNotLoaded(err) {
-		result, err = pr.QueryContract().Only(ctx)
+		result, err = pr.QueryContract().All(ctx)
 	}
-	return result, MaskNotFound(err)
+	return result, err
 }
 
 func (u *User) Properties(ctx context.Context) ([]*Property, error) {

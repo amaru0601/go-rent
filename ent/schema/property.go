@@ -32,6 +32,6 @@ func (Property) Fields() []ent.Field {
 func (Property) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("owner", User.Type).Ref("properties").Unique(),
-		edge.To("contract", Contract.Type).Unique(),
+		edge.To("contract", Contract.Type),
 	}
 }

@@ -103,7 +103,7 @@ func (pq *PropertyQuery) QueryContract() *ContractQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(property.Table, property.FieldID, selector),
 			sqlgraph.To(contract.Table, contract.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, property.ContractTable, property.ContractColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, property.ContractTable, property.ContractColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -454,6 +454,7 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Contract = []*Contract{}
 		}
 		query.withFKs = true
 		query.Where(predicate.Contract(func(s *sql.Selector) {
@@ -472,7 +473,7 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 			if !ok {
 				return nil, fmt.Errorf(`unexpected foreign-key "property_contract" returned %v for node %v`, *fk, n.ID)
 			}
-			node.Edges.Contract = n
+			node.Edges.Contract = append(node.Edges.Contract, n)
 		}
 	}
 

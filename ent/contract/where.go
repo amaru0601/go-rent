@@ -459,7 +459,7 @@ func HasProperty() predicate.Contract {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(PropertyTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, PropertyTable, PropertyColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, PropertyTable, PropertyColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -471,7 +471,7 @@ func HasPropertyWith(preds ...predicate.Property) predicate.Contract {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(PropertyInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, PropertyTable, PropertyColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, PropertyTable, PropertyColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

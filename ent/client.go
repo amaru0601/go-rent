@@ -247,7 +247,7 @@ func (c *ContractClient) QueryProperty(co *Contract) *PropertyQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(contract.Table, contract.FieldID, id),
 			sqlgraph.To(property.Table, property.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, contract.PropertyTable, contract.PropertyColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, contract.PropertyTable, contract.PropertyColumn),
 		)
 		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
 		return fromV, nil
@@ -369,7 +369,7 @@ func (c *PropertyClient) QueryContract(pr *Property) *ContractQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(property.Table, property.FieldID, id),
 			sqlgraph.To(contract.Table, contract.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, property.ContractTable, property.ContractColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, property.ContractTable, property.ContractColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil

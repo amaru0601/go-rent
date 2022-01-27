@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -82,6 +81,14 @@ func (cu *ContractUpdate) SetPropertyID(id int) *ContractUpdate {
 	return cu
 }
 
+// SetNillablePropertyID sets the "property" edge to the Property entity by ID if the given value is not nil.
+func (cu *ContractUpdate) SetNillablePropertyID(id *int) *ContractUpdate {
+	if id != nil {
+		cu = cu.SetPropertyID(*id)
+	}
+	return cu
+}
+
 // SetProperty sets the "property" edge to the Property entity.
 func (cu *ContractUpdate) SetProperty(p *Property) *ContractUpdate {
 	return cu.SetPropertyID(p.ID)
@@ -126,18 +133,12 @@ func (cu *ContractUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(cu.hooks) == 0 {
-		if err = cu.check(); err != nil {
-			return 0, err
-		}
 		affected, err = cu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*ContractMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = cu.check(); err != nil {
-				return 0, err
 			}
 			cu.mutation = mutation
 			affected, err = cu.sqlSave(ctx)
@@ -177,14 +178,6 @@ func (cu *ContractUpdate) ExecX(ctx context.Context) {
 	if err := cu.Exec(ctx); err != nil {
 		panic(err)
 	}
-}
-
-// check runs all checks and user-defined validators on the builder.
-func (cu *ContractUpdate) check() error {
-	if _, ok := cu.mutation.PropertyID(); cu.mutation.PropertyCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"property\"")
-	}
-	return nil
 }
 
 func (cu *ContractUpdate) sqlSave(ctx context.Context) (n int, err error) {
@@ -296,7 +289,7 @@ func (cu *ContractUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if cu.mutation.PropertyCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   contract.PropertyTable,
 			Columns: []string{contract.PropertyColumn},
@@ -312,7 +305,7 @@ func (cu *ContractUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := cu.mutation.PropertyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   contract.PropertyTable,
 			Columns: []string{contract.PropertyColumn},
@@ -400,6 +393,14 @@ func (cuo *ContractUpdateOne) SetPropertyID(id int) *ContractUpdateOne {
 	return cuo
 }
 
+// SetNillablePropertyID sets the "property" edge to the Property entity by ID if the given value is not nil.
+func (cuo *ContractUpdateOne) SetNillablePropertyID(id *int) *ContractUpdateOne {
+	if id != nil {
+		cuo = cuo.SetPropertyID(*id)
+	}
+	return cuo
+}
+
 // SetProperty sets the "property" edge to the Property entity.
 func (cuo *ContractUpdateOne) SetProperty(p *Property) *ContractUpdateOne {
 	return cuo.SetPropertyID(p.ID)
@@ -451,18 +452,12 @@ func (cuo *ContractUpdateOne) Save(ctx context.Context) (*Contract, error) {
 		node *Contract
 	)
 	if len(cuo.hooks) == 0 {
-		if err = cuo.check(); err != nil {
-			return nil, err
-		}
 		node, err = cuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*ContractMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = cuo.check(); err != nil {
-				return nil, err
 			}
 			cuo.mutation = mutation
 			node, err = cuo.sqlSave(ctx)
@@ -502,14 +497,6 @@ func (cuo *ContractUpdateOne) ExecX(ctx context.Context) {
 	if err := cuo.Exec(ctx); err != nil {
 		panic(err)
 	}
-}
-
-// check runs all checks and user-defined validators on the builder.
-func (cuo *ContractUpdateOne) check() error {
-	if _, ok := cuo.mutation.PropertyID(); cuo.mutation.PropertyCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"property\"")
-	}
-	return nil
 }
 
 func (cuo *ContractUpdateOne) sqlSave(ctx context.Context) (_node *Contract, err error) {
@@ -638,7 +625,7 @@ func (cuo *ContractUpdateOne) sqlSave(ctx context.Context) (_node *Contract, err
 	}
 	if cuo.mutation.PropertyCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   contract.PropertyTable,
 			Columns: []string{contract.PropertyColumn},
@@ -654,7 +641,7 @@ func (cuo *ContractUpdateOne) sqlSave(ctx context.Context) (_node *Contract, err
 	}
 	if nodes := cuo.mutation.PropertyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   contract.PropertyTable,
 			Columns: []string{contract.PropertyColumn},

@@ -103,7 +103,7 @@ func (cq *ContractQuery) QueryProperty() *PropertyQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(contract.Table, contract.FieldID, selector),
 			sqlgraph.To(property.Table, property.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, contract.PropertyTable, contract.PropertyColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, contract.PropertyTable, contract.PropertyColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil

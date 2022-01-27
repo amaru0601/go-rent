@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/amaru0601/go-rent/ent/contract"
 	"github.com/amaru0601/go-rent/ent/property"
 	"github.com/amaru0601/go-rent/ent/user"
 )
@@ -38,7 +37,7 @@ type PropertyEdges struct {
 	// Owner holds the value of the owner edge.
 	Owner *User `json:"owner,omitempty"`
 	// Contract holds the value of the contract edge.
-	Contract *Contract `json:"contract,omitempty"`
+	Contract []*Contract `json:"contract,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -59,14 +58,9 @@ func (e PropertyEdges) OwnerOrErr() (*User, error) {
 }
 
 // ContractOrErr returns the Contract value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e PropertyEdges) ContractOrErr() (*Contract, error) {
+// was not loaded in eager-loading.
+func (e PropertyEdges) ContractOrErr() ([]*Contract, error) {
 	if e.loadedTypes[1] {
-		if e.Contract == nil {
-			// The edge contract was loaded in eager-loading,
-			// but was not found.
-			return nil, &NotFoundError{label: contract.Label}
-		}
 		return e.Contract, nil
 	}
 	return nil, &NotLoadedError{edge: "contract"}

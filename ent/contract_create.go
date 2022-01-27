@@ -67,6 +67,14 @@ func (cc *ContractCreate) SetPropertyID(id int) *ContractCreate {
 	return cc
 }
 
+// SetNillablePropertyID sets the "property" edge to the Property entity by ID if the given value is not nil.
+func (cc *ContractCreate) SetNillablePropertyID(id *int) *ContractCreate {
+	if id != nil {
+		cc = cc.SetPropertyID(*id)
+	}
+	return cc
+}
+
 // SetProperty sets the "property" edge to the Property entity.
 func (cc *ContractCreate) SetProperty(p *Property) *ContractCreate {
 	return cc.SetPropertyID(p.ID)
@@ -154,9 +162,6 @@ func (cc *ContractCreate) check() error {
 	if _, ok := cc.mutation.PayDate(); !ok {
 		return &ValidationError{Name: "pay_date", err: errors.New(`ent: missing required field "pay_date"`)}
 	}
-	if _, ok := cc.mutation.PropertyID(); !ok {
-		return &ValidationError{Name: "property", err: errors.New("ent: missing required edge \"property\"")}
-	}
 	return nil
 }
 
@@ -237,7 +242,7 @@ func (cc *ContractCreate) createSpec() (*Contract, *sqlgraph.CreateSpec) {
 	}
 	if nodes := cc.mutation.PropertyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   contract.PropertyTable,
 			Columns: []string{contract.PropertyColumn},

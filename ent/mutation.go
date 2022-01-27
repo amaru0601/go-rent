@@ -686,7 +686,8 @@ type PropertyMutation struct {
 	clearedFields   map[string]struct{}
 	owner           *int
 	clearedowner    bool
-	contract        *int
+	contract        map[int]struct{}
+	removedcontract map[int]struct{}
 	clearedcontract bool
 	done            bool
 	oldValue        func(context.Context) (*Property, error)
@@ -991,9 +992,14 @@ func (m *PropertyMutation) ResetOwner() {
 	m.clearedowner = false
 }
 
-// SetContractID sets the "contract" edge to the Contract entity by id.
-func (m *PropertyMutation) SetContractID(id int) {
-	m.contract = &id
+// AddContractIDs adds the "contract" edge to the Contract entity by ids.
+func (m *PropertyMutation) AddContractIDs(ids ...int) {
+	if m.contract == nil {
+		m.contract = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.contract[ids[i]] = struct{}{}
+	}
 }
 
 // ClearContract clears the "contract" edge to the Contract entity.
@@ -1006,20 +1012,29 @@ func (m *PropertyMutation) ContractCleared() bool {
 	return m.clearedcontract
 }
 
-// ContractID returns the "contract" edge ID in the mutation.
-func (m *PropertyMutation) ContractID() (id int, exists bool) {
-	if m.contract != nil {
-		return *m.contract, true
+// RemoveContractIDs removes the "contract" edge to the Contract entity by IDs.
+func (m *PropertyMutation) RemoveContractIDs(ids ...int) {
+	if m.removedcontract == nil {
+		m.removedcontract = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.contract, ids[i])
+		m.removedcontract[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedContract returns the removed IDs of the "contract" edge to the Contract entity.
+func (m *PropertyMutation) RemovedContractIDs() (ids []int) {
+	for id := range m.removedcontract {
+		ids = append(ids, id)
 	}
 	return
 }
 
 // ContractIDs returns the "contract" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ContractID instead. It exists only for internal usage by the builders.
 func (m *PropertyMutation) ContractIDs() (ids []int) {
-	if id := m.contract; id != nil {
-		ids = append(ids, *id)
+	for id := range m.contract {
+		ids = append(ids, id)
 	}
 	return
 }
@@ -1028,6 +1043,7 @@ func (m *PropertyMutation) ContractIDs() (ids []int) {
 func (m *PropertyMutation) ResetContract() {
 	m.contract = nil
 	m.clearedcontract = false
+	m.removedcontract = nil
 }
 
 // Where appends a list predicates to the PropertyMutation builder.
@@ -1235,9 +1251,11 @@ func (m *PropertyMutation) AddedIDs(name string) []ent.Value {
 			return []ent.Value{*id}
 		}
 	case property.EdgeContract:
-		if id := m.contract; id != nil {
-			return []ent.Value{*id}
+		ids := make([]ent.Value, 0, len(m.contract))
+		for id := range m.contract {
+			ids = append(ids, id)
 		}
+		return ids
 	}
 	return nil
 }
@@ -1245,6 +1263,9 @@ func (m *PropertyMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PropertyMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
+	if m.removedcontract != nil {
+		edges = append(edges, property.EdgeContract)
+	}
 	return edges
 }
 
@@ -1252,6 +1273,12 @@ func (m *PropertyMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *PropertyMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case property.EdgeContract:
+		ids := make([]ent.Value, 0, len(m.removedcontract))
+		for id := range m.removedcontract {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -1286,9 +1313,6 @@ func (m *PropertyMutation) ClearEdge(name string) error {
 	switch name {
 	case property.EdgeOwner:
 		m.ClearOwner()
-		return nil
-	case property.EdgeContract:
-		m.ClearContract()
 		return nil
 	}
 	return fmt.Errorf("unknown Property unique edge %s", name)
