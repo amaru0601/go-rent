@@ -14,7 +14,6 @@ import (
 )
 
 func (r *contractResolver) Tenant(ctx context.Context, obj *ent.Contract) (*ent.User, error) {
-	//TODO improve query to get Tenant
 	propertyContract, err := obj.Property(ctx)
 
 	if err != nil {
