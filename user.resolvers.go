@@ -91,7 +91,33 @@ func (r *mutationResolver) CreateContract(ctx context.Context, contract Contract
 }
 
 func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {
-	return r.client.User.Query().All(ctx)
+	users, err := r.client.User.Query().All(ctx)
+	if err != nil {
+		log.Printf("failed get all users: %v", err)
+		return nil, err
+	}
+
+	return users, err
+}
+
+func (r *queryResolver) GetProperty(ctx context.Context, id int) (*ent.Property, error) {
+	property, err := r.client.Property.Get(ctx, id)
+	if err != nil {
+		log.Printf("failed get property: %v", err)
+		return nil, err
+	}
+
+	return property, err
+}
+
+func (r *queryResolver) GetContract(ctx context.Context, id int) (*ent.Contract, error) {
+	property, err := r.client.Contract.Get(ctx, id)
+	if err != nil {
+		log.Printf("failed get contract: %v", err)
+		return nil, err
+	}
+
+	return property, err
 }
 
 // Contract returns ContractResolver implementation.

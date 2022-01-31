@@ -70,4 +70,6 @@ type Mutation {
 
 type Query {
     users: [User!]
+    getProperty(id: ID!): Property!
+    getContract(id: ID!): Contract!
 }
