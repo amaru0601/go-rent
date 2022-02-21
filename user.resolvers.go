@@ -119,6 +119,14 @@ func (r *queryResolver) GetContract(ctx context.Context, id int) (*ent.Contract,
 	return property, err
 }
 
+func (r *queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
+	return r.client.Noder(ctx, id)
+}
+
+func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, error) {
+	return r.client.Noders(ctx, ids)
+}
+
 // Contract returns ContractResolver implementation.
 func (r *Resolver) Contract() ContractResolver { return &contractResolver{r} }
 

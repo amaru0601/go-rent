@@ -6,7 +6,7 @@ resolver:
   dir: .
 
 autobind:
-  - "github.com/amaru0601/go-rent/ent"
+  - github.com/amaru0601/go-rent/ent
 
 models:
   ID:
@@ -16,3 +16,7 @@ models:
   TypeProperty:
     model:
       - github.com/amaru0601/go-rent/ent/property.Class
+
+  Node:
+    model:
+      - github.com/amaru0601/go-rent/ent.Noder
